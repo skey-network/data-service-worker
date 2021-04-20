@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npm run build && node dist/src/main.js",
     "build": "rm -rf dist && tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --config ./spec/config.json"
   },
   "keywords": [],
   "author": "",
@@ -23,8 +23,10 @@
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
+    "@types/jest": "^26.0.22",
     "@types/node": "^14.14.41",
     "jest": "^26.6.3",
-    "ts-jest": "^26.5.5"
+    "ts-jest": "^26.5.5",
+    "typescript": "^4.2.4"
   }
 }

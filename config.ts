@@ -1,9 +1,9 @@
 export default {
-  // blockchain: {
-  //   dappFatherAddress: process.env.BLOCKCHAIN_DAPP_FATHER_ADDRESS!,
-  //   nodeUrl: process.env.BLOCKCHAIN_NODE_URL ?? 'http://localhost:6869',
-  //   chainId: process.env.BLOCKCHAIN_CHAIN_ID ?? 'R'
-  // },
+  blockchain: {
+    dappFatherAddress: process.env.BLOCKCHAIN_DAPP_FATHER_ADDRESS!
+    // nodeUrl: process.env.BLOCKCHAIN_NODE_URL ?? 'http://localhost:6869',
+    // chainId: process.env.BLOCKCHAIN_CHAIN_ID ?? 'R'
+  },
   db: {
     name: process.env.DB_NAME ?? 'admin',
     host: process.env.DB_HOST ?? 'localhost',

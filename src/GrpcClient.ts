@@ -17,7 +17,7 @@ export class GrpcClient {
 
     this.blockchainUpdatesApiClient = this.createApi(
       events.grpc.BlockchainUpdatesApi,
-      config.grpc.apiPort
+      config.grpc.updatesPort
     )
   }
 
