@@ -752,6 +752,14 @@
     "@types/long" "^4.0.0"
     protobufjs "^6.8.8"
 
+"@waves/ts-lib-crypto@1.4.3", "@waves/ts-lib-crypto@^1.4.3":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@waves/ts-lib-crypto/-/ts-lib-crypto-1.4.3.tgz#8948fddc35d4e90b2184f9773eeb63907a6a6edd"
+  integrity sha512-2pKgyvtLapgM5vpaUEYzX7NYe2bkB+HdWn9W/4d7UFKwyg6zoOYhRQWyb6GuLi3OLHTETgiqpcMZvciFA0Ds6g==
+  dependencies:
+    js-sha3 "^0.8.0"
+    node-forge "^0.8.5"
+
 "@waves/ts-lib-crypto@1.4.3-beta.1":
   version "1.4.3-beta.1"
   resolved "https://registry.yarnpkg.com/@waves/ts-lib-crypto/-/ts-lib-crypto-1.4.3-beta.1.tgz#2e53c807d4e5260a31909f2e926e77c9046216e2"
@@ -777,6 +785,19 @@
   version "0.3.5"
   resolved "https://registry.yarnpkg.com/@waves/ts-types/-/ts-types-0.3.5.tgz#f0503ccf38211a33777f54a549cc3b15aeb3f89f"
   integrity sha512-f4rTEc0hJ1yrsZPmnkLLhxbv6Kry4P35cPhOz8VIe/j4pB5uk0DrHRb5UoKV1xmTWBSZt5bKRiVZLdsIcIn8Gw==
+
+"@waves/waves-transactions@^4.1.8":
+  version "4.1.8"
+  resolved "https://registry.yarnpkg.com/@waves/waves-transactions/-/waves-transactions-4.1.8.tgz#0d4891b04dd9a54d81ccb7fee70a36a64641a762"
+  integrity sha512-pTdGs5/pvrXWaV4kxSkhWb6ir/g2FEhLV7KDyfRhlwxMtA3DjK8KDewmKbMw9kOLGy4g/FlfyhgKY6OPdzbf5w==
+  dependencies:
+    "@waves/marshall" "0.14.0"
+    "@waves/node-api-js" "1.1.1"
+    "@waves/protobuf-serialization" "1.2.9-SNAPSHOT"
+    "@waves/ts-lib-crypto" "1.4.3"
+    "@waves/ts-types" "0.3.2"
+    axios "^0.19.0"
+    long "^4.0.0"
 
 "@waves/waves-transactions@^4.1.9-beta.2":
   version "4.1.9-beta.2"
@@ -978,6 +999,13 @@ aws4@^1.8.0:
   version "1.11.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.11.0.tgz#d61f46d83b2519250e2784daf5b09479a8b41c59"
   integrity sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==
+
+axios@^0.19.0:
+  version "0.19.2"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.19.2.tgz#3ea36c5d8818d0d5f8a8a97a6d36b86cdc00cb27"
+  integrity sha512-fjgm5MvRHLhx+osE2xoekY70AhARk3a6hkN+3Io1jc00jtquGvxYlKlsFUhmUET0V5te6CcZI7lcv2Ym61mjHA==
+  dependencies:
+    follow-redirects "1.5.10"
 
 axios@^0.21.1:
   version "0.21.1"
@@ -1450,6 +1478,13 @@ debug@4, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1:
   dependencies:
     ms "2.1.2"
 
+debug@=3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
+  integrity sha512-OX8XqP7/1a9cqkxYw2yXss15f26NKWBpDXQd0/uK/KPqdQhxbPa994hnzjcE2VqQpDslf55723cKPUOGSmMY3g==
+  dependencies:
+    ms "2.0.0"
+
 debug@^2.2.0, debug@^2.3.3:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
@@ -1790,6 +1825,13 @@ find-up@^4.0.0, find-up@^4.1.0:
   dependencies:
     locate-path "^5.0.0"
     path-exists "^4.0.0"
+
+follow-redirects@1.5.10:
+  version "1.5.10"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.5.10.tgz#7b7a9f9aea2fdff36786a94ff643ed07f4ff5e2a"
+  integrity sha512-0V5l4Cizzvqt5D44aTXbFZz+FtyXV1vrDN6qrelxtfYQKW0KO0W2T/hkE8xvGa/540LkZlkaUjO4ailYTFtHVQ==
+  dependencies:
+    debug "=3.1.0"
 
 follow-redirects@^1.10.0:
   version "1.13.3"
@@ -3083,7 +3125,7 @@ nice-try@^1.0.4:
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
-node-fetch@^2.3.0, node-fetch@^2.6.0:
+node-fetch@^2.3.0, node-fetch@^2.6.0, node-fetch@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
   integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
@@ -3092,6 +3134,11 @@ node-forge@^0.10.0:
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-0.10.0.tgz#32dea2afb3e9926f02ee5ce8794902691a676bf3"
   integrity sha512-PPmu8eEeG9saEUvI97fm4OYxXVB6bFvyNTyiUOBichBpFG8A1Ljw3bY62+5oOjDEMHRnd0Y7HQ+x7uzxOzC6JA==
+
+node-forge@^0.8.5:
+  version "0.8.5"
+  resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-0.8.5.tgz#57906f07614dc72762c84cef442f427c0e1b86ee"
+  integrity sha512-vFMQIWt+J/7FLNyKouZ9TazT74PRV3wgv9UT4cRjC8BffxFbKXkgIWR42URCPSnHm/QDz6BOlb2Q0U4+VQT67Q==
 
 node-int64@^0.4.0:
   version "0.4.0"
@@ -3708,6 +3755,14 @@ sisteransi@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/sisteransi/-/sisteransi-1.0.5.tgz#134d681297756437cc05ca01370d3a7a571075ed"
   integrity sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==
+
+skey-lib@smartkeyplatform/SmartKey-Libs:
+  version "1.0.0"
+  resolved "https://codeload.github.com/smartkeyplatform/SmartKey-Libs/tar.gz/9c296cd2d40a12a573f2c0dd7f9d2ca3fe78fe7c"
+  dependencies:
+    "@waves/ts-lib-crypto" "^1.4.3"
+    "@waves/waves-transactions" "^4.1.8"
+    node-fetch "^2.6.1"
 
 slash@^3.0.0:
   version "3.0.0"

@@ -1,6 +1,6 @@
 import { Column, Entity, ObjectID, ObjectIdColumn } from 'typeorm'
 
-@Entity()
+@Entity({ name: 'keys' })
 export class Key {
   @ObjectIdColumn()
   id: ObjectID
@@ -23,6 +23,6 @@ export class Key {
   @Column({ type: 'number', nullable: false })
   issueTimestamp: number
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'boolean', nullable: false })
   active: boolean
 }

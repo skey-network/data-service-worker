@@ -1,15 +1,16 @@
-import * as Crypto from '@waves/ts-lib-crypto'
 import { Injectable } from 'injection-js'
+import config from '../config'
 import { _waves_DataTransactionData_DataEntry } from '../proto/interfaces/waves/DataTransactionData'
 import { SubscribeEvent } from '../proto/interfaces/waves/events/grpc/SubscribeEvent'
 import { _waves_events_StateUpdate_DataEntryUpdate } from '../proto/interfaces/waves/events/StateUpdate'
 import { Common } from './Common'
 import * as Constants from './Constants'
+import { Db } from './Db'
 import { Logger } from './Logger'
 
 @Injectable()
 export class TxHandler {
-  constructor(private common: Common, private logger: Logger) {}
+  constructor(private common: Common, private logger: Logger, private db: Db) {}
 
   *dataEntriesIterator(chunk: SubscribeEvent) {
     const stateUpdates = chunk.update?.append?.transaction_state_updates
@@ -33,13 +34,13 @@ export class TxHandler {
     }
   }
 
-  handleAddDevices(chunk: SubscribeEvent) {
+  async handleAddDevices(chunk: SubscribeEvent) {
     const entries = this.dataEntriesIterator(chunk)
 
     for (const entry of entries) {
-      const dapp = Crypto.base58Encode(entry.address ?? [])
+      const dapp = this.common.bufforToAddress(entry.address ?? [])
 
-      if (!this.common.isDapp(dapp)) {
+      if (config.blockchain.dapp !== dapp) {
         this.logger.debug('not a dapp')
         continue
       }
@@ -57,7 +58,42 @@ export class TxHandler {
       const devicePrefix = 'device_'
       const address = entry.data_entry.key!.replace(devicePrefix, '')
 
-      this.logger.log(`Add device ${address} to dapp ${dapp}`)
+      try {
+        await this.db.deviceRepository.save({ address, dapp, owner: dapp })
+        this.logger.log(`Device ${address} created`)
+      } catch (err) {
+        this.logger.error(`Cannot create device ${address}`)
+        this.logger.error(err.message)
+      }
+    }
+  }
+
+  async handleUpdateDevices(chunk: SubscribeEvent) {
+    const entries = this.dataEntriesIterator(chunk)
+
+    for (const entry of entries) {
+      const address = this.common.bufforToAddress(entry.address ?? [])
+
+      if (!this.common.isValidDeviceEntryKey(entry.data_entry?.key ?? '')) {
+        this.logger.debug('invalid entry key')
+        continue
+      }
+
+      const device = await this.db.deviceRepository.findOne({ address })
+
+      if (!device) {
+        this.logger.debug('device does not exist')
+        continue
+      }
+
+      // TODO
+      await this.db.deviceRepository.findOneAndUpdate(
+        { address: device.address },
+        { $set: { name: 'test name' } },
+        { upsert: true }
+      )
+
+      this.logger.log(`Should update device ${address}`)
     }
   }
 

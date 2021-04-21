@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npm run build && node dist/src/main.js",
     "build": "rm -rf dist && tsc",
-    "test": "jest --config ./spec/config.json"
+    "test": "jest --config ./spec/config.json --detectOpenHandles"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +21,8 @@
     "injection-js": "^2.4.0",
     "mongodb": "^3.6.6",
     "reflect-metadata": "^0.1.13",
-    "typeorm": "^0.2.32"
+    "typeorm": "^0.2.32",
+    "skey-lib": "smartkeyplatform/SmartKey-Libs"
   },
   "devDependencies": {
     "@types/jest": "^26.0.22",

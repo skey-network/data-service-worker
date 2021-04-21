@@ -10,10 +10,10 @@ export const types = Object.freeze([
 ])
 
 export class Location {
-  @Column({ nullable: false, type: 'number' })
+  @Column({ type: 'number' })
   lat: number
 
-  @Column({ nullable: false, type: 'number' })
+  @Column({ type: 'number' })
   lng: number
 
   @Column({ type: 'number' })
@@ -46,7 +46,7 @@ export class PhysicalAddress {
   floor?: string
 }
 
-@Entity()
+@Entity({ name: 'devices' })
 export class Device {
   @ObjectIdColumn()
   id: ObjectID
@@ -75,7 +75,7 @@ export class Device {
   @Column({ type: 'string' })
   contactInfo?: string
 
-  @Column({ default: true, type: 'boolean' })
+  @Column({ type: 'boolean' })
   visible?: boolean
 
   @Column(() => Location)
@@ -84,10 +84,10 @@ export class Device {
   @Column(() => PhysicalAddress)
   physicalAddress?: PhysicalAddress
 
-  @Column({ default: true, type: 'boolean' })
+  @Column({ type: 'boolean' })
   active: boolean
 
-  @Column({ default: true, type: 'boolean' })
+  @Column({ type: 'boolean' })
   connected: boolean
 
   @Column({ nullable: false, type: 'string' })

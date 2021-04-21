@@ -1,10 +1,5 @@
 import { Injectable } from 'injection-js'
-import {
-  Connection,
-  createConnection,
-  getMongoRepository,
-  MongoRepository
-} from 'typeorm'
+import { Connection, createConnection, MongoRepository } from 'typeorm'
 import { MongoConnectionOptions } from 'typeorm/driver/mongodb/MongoConnectionOptions'
 import config from '../config'
 import { Device } from '../models/Device'
@@ -21,7 +16,8 @@ export const connectionOptions: MongoConnectionOptions = Object.freeze({
   useNewUrlParser: true,
   useUnifiedTopology: true,
   validateOptions: true,
-  entities: [Device, Key]
+  entities: [Device, Key],
+  synchronize: true
 })
 
 @Injectable()
@@ -32,9 +28,8 @@ export class Db {
 
   async connect() {
     this.connection = await createConnection(connectionOptions)
-    // console.log(this.connection.isConnected)
     this._deviceRepository = this.connection.getMongoRepository(Device)
-    // this._keyRepository = this.connection.getMongoRepository(Key)
+    this._keyRepository = this.connection.getMongoRepository(Key)
   }
 
   async disconnect() {
