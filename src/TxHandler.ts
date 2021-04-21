@@ -3,63 +3,62 @@ import { Injectable } from 'injection-js'
 import { _waves_DataTransactionData_DataEntry } from '../proto/interfaces/waves/DataTransactionData'
 import { SubscribeEvent } from '../proto/interfaces/waves/events/grpc/SubscribeEvent'
 import { _waves_events_StateUpdate_DataEntryUpdate } from '../proto/interfaces/waves/events/StateUpdate'
+import { Common } from './Common'
 import * as Constants from './Constants'
-
-export interface Ticket {
-  accepted: boolean
-  error?: string
-}
-
-export interface Entry {
-  key: string
-  value: string | boolean
-}
-
-// TODO hardcoded list of dapps initially
-// TODO iterate through data entries function
+import { Logger } from './Logger'
 
 @Injectable()
 export class TxHandler {
-  handleAddDevices(chunk: SubscribeEvent): Ticket[] {
-    const tickets: Ticket[] = []
+  constructor(private common: Common, private logger: Logger) {}
 
+  *dataEntriesIterator(chunk: SubscribeEvent) {
     const stateUpdates = chunk.update?.append?.transaction_state_updates
 
     if (!stateUpdates || stateUpdates?.length === 0) {
-      return [{ accepted: false, error: 'no state updates' }]
+      this.logger.debug('No state updates')
+      return
     }
 
-    stateUpdates.forEach((update) => {
+    for (const update of stateUpdates) {
       const entries = update.data_entries
 
       if (!entries || entries.length === 0) {
-        return [{ accepted: false, error: 'no data entries' }]
+        this.logger.debug('No data entries')
+        return
       }
 
-      entries.forEach((entry) => {
-        const dapp = Crypto.base58Encode(entry.address ?? [])
-        // check if address is a dapp
+      for (const entry of entries) {
+        yield entry
+      }
+    }
+  }
 
-        if (!Constants.deviceRegex.test(entry.data_entry?.key ?? '')) {
-          tickets.push({ accepted: false, error: 'invalid entry key' })
-          return
-        }
+  handleAddDevices(chunk: SubscribeEvent) {
+    const entries = this.dataEntriesIterator(chunk)
 
-        if (entry.data_entry?.string_value !== Constants.ACTIVE) {
-          tickets.push({ accepted: false, error: 'invalid entry value' })
-          return
-        }
+    for (const entry of entries) {
+      const dapp = Crypto.base58Encode(entry.address ?? [])
 
-        const devicePrefix = 'device_'
-        const address = entry.data_entry.key!.replace(devicePrefix, '')
+      if (!this.common.isDapp(dapp)) {
+        this.logger.debug('not a dapp')
+        continue
+      }
 
-        tickets.push({ accepted: true })
+      if (!Constants.deviceRegex.test(entry.data_entry?.key ?? '')) {
+        this.logger.debug('invalid entry key')
+        continue
+      }
 
-        console.log(`Add device ${address} to dapp ${dapp}`)
-      })
-    })
+      if (entry.data_entry?.string_value !== Constants.active) {
+        this.logger.debug('invalid entry value')
+        continue
+      }
 
-    return tickets
+      const devicePrefix = 'device_'
+      const address = entry.data_entry.key!.replace(devicePrefix, '')
+
+      this.logger.log(`Add device ${address} to dapp ${dapp}`)
+    }
   }
 
   // parseEntry(entry: _waves_DataTransactionData_DataEntry): Entry {
