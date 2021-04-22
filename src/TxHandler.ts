@@ -2,7 +2,6 @@ import { Injectable } from 'injection-js'
 import config from '../config'
 import { _waves_DataTransactionData_DataEntry as Entry } from '../proto/interfaces/waves/DataTransactionData'
 import { SubscribeEvent } from '../proto/interfaces/waves/events/grpc/SubscribeEvent'
-// import { _waves_events_StateUpdate_DataEntryUpdate } from '../proto/interfaces/waves/events/StateUpdate'
 import { Common } from './Common'
 import * as Constants from './Constants'
 import { Db } from './Db'
@@ -109,8 +108,7 @@ export class TxHandler {
       if (device) {
         await this.db.deviceRepository.findOneAndUpdate(
           { address: device.address },
-          { $set: update },
-          { upsert: true }
+          { $set: update }
         )
       } else {
         // Create new device only if dapp is in data entries
