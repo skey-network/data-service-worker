@@ -12,6 +12,8 @@ import { Logger } from './Logger'
 export class TxHandler {
   constructor(private common: Common, private logger: Logger, private db: Db) {}
 
+  // this can be optimized for multiple entries for same address
+  // in single db update
   *dataEntriesIterator(chunk: SubscribeEvent) {
     const stateUpdates = chunk.update?.append?.transaction_state_updates
 
@@ -59,7 +61,12 @@ export class TxHandler {
       const address = entry.data_entry.key!.replace(devicePrefix, '')
 
       try {
-        await this.db.deviceRepository.save({ address, dapp, owner: dapp })
+        await this.db.deviceRepository.save({
+          address,
+          dapp,
+          owner: dapp,
+          whitelisted: true
+        })
         this.logger.log(`Device ${address} created`)
       } catch (err) {
         this.logger.error(`Cannot create device ${address}`)
@@ -68,47 +75,33 @@ export class TxHandler {
     }
   }
 
+  // this can save useless data as device ??
   async handleUpdateDevices(chunk: SubscribeEvent) {
     const entries = this.dataEntriesIterator(chunk)
 
     for (const entry of entries) {
       const address = this.common.bufforToAddress(entry.address ?? [])
 
-      if (!this.common.isValidDeviceEntryKey(entry.data_entry?.key ?? '')) {
+      const update = this.common.parseDeviceEntry(entry.data_entry ?? {})
+
+      if (!update) {
         this.logger.debug('invalid entry key')
         continue
       }
 
       const device = await this.db.deviceRepository.findOne({ address })
 
-      if (!device) {
-        this.logger.debug('device does not exist')
-        continue
+      if (device) {
+        await this.db.deviceRepository.findOneAndUpdate(
+          { address: device.address },
+          { $set: update },
+          { upsert: true }
+        )
+      } else {
+        await this.db.deviceRepository.save({ address, ...update, whitelisted: false })
       }
 
-      // TODO
-      await this.db.deviceRepository.findOneAndUpdate(
-        { address: device.address },
-        { $set: { name: 'test name' } },
-        { upsert: true }
-      )
-
-      this.logger.log(`Should update device ${address}`)
+      this.logger.log(`Device ${address} updated`)
     }
   }
-
-  // parseEntry(entry: _waves_DataTransactionData_DataEntry): Entry {
-  //   switch (entry.value) {
-  //     case 'string_value':
-  //       return { key: entry.key!, value: entry.string_value ?? '' }
-  //     case 'bool_value':
-  //       return { key: entry.key!, value: entry.bool_value ?? false }
-  //     case 'int_value':
-  //       return { key: entry.key!, value: entry.int_value?.toString() ?? '' }
-  //     case 'binary_value':
-  //       return { key: entry.key!, value: entry.binary_value?.toString() ?? '' }
-  //     default:
-  //       throw new Error('Invalid data entry format')
-  //   }
-  // }
 }
