@@ -4,7 +4,6 @@ configure()
 import 'reflect-metadata'
 
 import { ReflectiveInjector } from 'injection-js'
-import { ProtoLoader } from './ProtoLoader'
 import { GrpcClient } from './GrpcClient'
 import { Blockchain } from './Blockchain'
 import { Listener } from './Listener'
@@ -15,7 +14,6 @@ import { Db } from './Db'
 
 export const createApp = () => {
   const injector = ReflectiveInjector.resolveAndCreate([
-    ProtoLoader,
     GrpcClient,
     Blockchain,
     Listener,
@@ -26,7 +24,6 @@ export const createApp = () => {
   ])
 
   return {
-    protoLoader: injector.get(ProtoLoader) as ProtoLoader,
     grpcClient: injector.get(GrpcClient) as GrpcClient,
     blockchain: injector.get(Blockchain) as Blockchain,
     listener: injector.get(Listener) as Listener,
@@ -43,8 +40,5 @@ const _ = (async () => {
   await app.db.connect()
   const height = await app.blockchain.fetchHeight()
 
-  app.blockchain.onBlockchainUpdate(
-    (chunk) => app.txHandler.handleUpdateDevices(chunk),
-    height
-  )
+  app.listener.subscribe((chunk) => app.txHandler.handleUpdateDevices(chunk), height)
 })()

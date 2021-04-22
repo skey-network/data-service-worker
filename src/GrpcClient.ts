@@ -1,17 +1,29 @@
 import { Injectable } from 'injection-js'
 import * as grpc from '@grpc/grpc-js'
+import * as protoLoader from '@grpc/proto-loader'
 import { BlocksApiClient } from '../proto/interfaces/waves/node/grpc/BlocksApi'
-import { ProtoLoader } from './ProtoLoader'
 import config from '../config'
 import { BlockchainUpdatesApiClient } from '../proto/interfaces/waves/events/grpc/BlockchainUpdatesApi'
+import { readdirSync } from 'fs'
+
+const protoLoaderOptions: protoLoader.Options = Object.freeze({
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true
+})
 
 @Injectable()
 export class GrpcClient {
   public blocksApiClient: BlocksApiClient
   public blockchainUpdatesApiClient: BlockchainUpdatesApiClient
+  public proto: any
 
-  constructor(private protoLoader: ProtoLoader) {
-    const { node, events } = protoLoader.proto
+  constructor() {
+    this.proto = this.loadProto()
+
+    const { node, events } = this.proto
 
     this.blocksApiClient = this.createApi(node.grpc.BlocksApi, config.grpc.apiPort)
 
@@ -25,5 +37,16 @@ export class GrpcClient {
     const url = `${config.grpc.host}:${port}`
     const client = new obj(url, grpc.credentials.createInsecure())
     return client as T
+  }
+
+  public loadProto() {
+    const dir = `${process.cwd()}/proto`
+
+    const files = readdirSync(dir)
+      .map((filename) => `${dir}/${filename}`)
+      .filter((file) => /.proto$/.test(file))
+
+    const packageDefinition = protoLoader.loadSync(files, protoLoaderOptions)
+    return grpc.loadPackageDefinition(packageDefinition).waves
   }
 }

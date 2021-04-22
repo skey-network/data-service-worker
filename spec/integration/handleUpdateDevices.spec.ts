@@ -15,7 +15,7 @@ describe('handleUpdateDevice', () => {
   it('update device', async () => {
     const height = await app.blockchain.fetchHeight()
 
-    const promise = app.blockchain.onBlockchainUpdate(
+    const promise = app.listener.subscribe(
       (chunk) => app.txHandler.handleUpdateDevices(chunk),
       height
     )

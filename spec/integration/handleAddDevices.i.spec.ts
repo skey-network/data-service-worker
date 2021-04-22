@@ -15,7 +15,7 @@ describe('handleAddDevice', () => {
   it('adds device to database', async () => {
     const height = await app.blockchain.fetchHeight()
 
-    const promise = app.blockchain.onBlockchainUpdate(
+    const promise = app.listener.subscribe(
       (chunk) => app.txHandler.handleAddDevices(chunk),
       height
     )
@@ -46,7 +46,7 @@ describe('handleAddDevice', () => {
     const height = await app.blockchain.fetchHeight()
     const count = await app.db.deviceRepository.count()
 
-    const promise = app.blockchain.onBlockchainUpdate(
+    const promise = app.listener.subscribe(
       (chunk) => app.txHandler.handleAddDevices(chunk),
       height
     )
@@ -68,7 +68,7 @@ describe('handleAddDevice', () => {
     const height = await app.blockchain.fetchHeight()
     const count = await app.db.deviceRepository.count()
 
-    const promise = app.blockchain.onBlockchainUpdate(
+    const promise = app.listener.subscribe(
       (chunk) => app.txHandler.handleAddDevices(chunk),
       height
     )
@@ -93,7 +93,7 @@ describe('handleAddDevice', () => {
   it('invalid entry key', async () => {
     const height = await app.blockchain.fetchHeight()
 
-    const promise = app.blockchain.onBlockchainUpdate(
+    const promise = app.listener.subscribe(
       (chunk) => app.txHandler.handleAddDevices(chunk),
       height
     )
@@ -111,7 +111,7 @@ describe('handleAddDevice', () => {
   it('invalid entry value', async () => {
     const height = await app.blockchain.fetchHeight()
 
-    const promise = app.blockchain.onBlockchainUpdate(
+    const promise = app.listener.subscribe(
       (chunk) => app.txHandler.handleAddDevices(chunk),
       height
     )

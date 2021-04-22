@@ -6,7 +6,8 @@
   "scripts": {
     "start": "npm run build && node dist/src/main.js",
     "build": "rm -rf dist && tsc",
-    "test": "jest --config ./spec/config.json --detectOpenHandles"
+    "test": "jest --config ./spec/config.json",
+    "test:watch": "jest --config ./spec/config.json  --watch"
   },
   "keywords": [],
   "author": "",

@@ -7,7 +7,6 @@ import { Common } from '../src/Common'
 import { GrpcClient } from '../src/GrpcClient'
 import { Listener } from '../src/Listener'
 import { Logger } from '../src/Logger'
-import { ProtoLoader } from '../src/ProtoLoader'
 import { TxHandler } from '../src/TxHandler'
 
 export const genesis = 'waves private node seed with waves tokens'
@@ -34,7 +33,6 @@ export const waitForCall = (spy: jest.SpyInstance, timeout = 8000) => {
 
 export const createApp = () => {
   const injector = ReflectiveInjector.resolveAndCreate([
-    ProtoLoader,
     GrpcClient,
     Blockchain,
     Listener,
@@ -45,7 +43,6 @@ export const createApp = () => {
   ])
 
   return {
-    protoLoader: injector.get(ProtoLoader) as ProtoLoader,
     grpcClient: injector.get(GrpcClient) as GrpcClient,
     blockchain: injector.get(Blockchain) as Blockchain,
     listener: injector.get(Listener) as Listener,
