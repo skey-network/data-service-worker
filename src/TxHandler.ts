@@ -1,8 +1,8 @@
 import { Injectable } from 'injection-js'
 import config from '../config'
-import { _waves_DataTransactionData_DataEntry } from '../proto/interfaces/waves/DataTransactionData'
+import { _waves_DataTransactionData_DataEntry as Entry } from '../proto/interfaces/waves/DataTransactionData'
 import { SubscribeEvent } from '../proto/interfaces/waves/events/grpc/SubscribeEvent'
-import { _waves_events_StateUpdate_DataEntryUpdate } from '../proto/interfaces/waves/events/StateUpdate'
+// import { _waves_events_StateUpdate_DataEntryUpdate } from '../proto/interfaces/waves/events/StateUpdate'
 import { Common } from './Common'
 import * as Constants from './Constants'
 import { Db } from './Db'
@@ -12,8 +12,6 @@ import { Logger } from './Logger'
 export class TxHandler {
   constructor(private common: Common, private logger: Logger, private db: Db) {}
 
-  // this can be optimized for multiple entries for same address
-  // in single db update
   *dataEntriesIterator(chunk: SubscribeEvent) {
     const stateUpdates = chunk.update?.append?.transaction_state_updates
 
@@ -30,62 +28,79 @@ export class TxHandler {
         return
       }
 
+      const map = new Map<string, Entry[]>()
+
       for (const entry of entries) {
-        yield entry
+        if (!entry.address || !entry.data_entry) continue
+
+        const address = this.common.bufforToAddress(entry.address)
+
+        const currentEntries = map.get(address) ?? []
+
+        map.set(address, [...currentEntries, entry.data_entry])
+      }
+
+      for (const [address, entries] of map) {
+        yield { address, entries }
       }
     }
   }
 
   async handleAddDevices(chunk: SubscribeEvent) {
-    const entries = this.dataEntriesIterator(chunk)
+    const items = this.dataEntriesIterator(chunk)
 
-    for (const entry of entries) {
-      const dapp = this.common.bufforToAddress(entry.address ?? [])
+    for (const item of items) {
+      const dapp = this.common.bufforToAddress(item.address ?? [])
 
       if (config.blockchain.dapp !== dapp) {
         this.logger.debug('not a dapp')
         continue
       }
 
-      if (!Constants.deviceRegex.test(entry.data_entry?.key ?? '')) {
-        this.logger.debug('invalid entry key')
-        continue
-      }
+      for (const entry of item.entries) {
+        if (!Constants.deviceRegex.test(entry.key ?? '')) {
+          this.logger.debug('invalid entry key')
+          continue
+        }
 
-      if (entry.data_entry?.string_value !== Constants.active) {
-        this.logger.debug('invalid entry value')
-        continue
-      }
+        if (entry.string_value !== Constants.active) {
+          this.logger.debug('invalid entry value')
+          continue
+        }
 
-      const devicePrefix = 'device_'
-      const address = entry.data_entry.key!.replace(devicePrefix, '')
+        const devicePrefix = 'device_'
+        const address = entry.key!.replace(devicePrefix, '')
 
-      try {
-        await this.db.deviceRepository.save({
-          address,
-          dapp,
-          owner: dapp,
-          whitelisted: true
-        })
-        this.logger.log(`Device ${address} created`)
-      } catch (err) {
-        this.logger.error(`Cannot create device ${address}`)
-        this.logger.error(err.message)
+        try {
+          await this.db.deviceRepository.save({
+            address,
+            dapp,
+            owner: dapp,
+            whitelisted: true
+          })
+          this.logger.log(`Device ${address} created`)
+        } catch (err) {
+          this.logger.error(`Cannot create device ${address}`)
+          this.logger.error(err.message)
+        }
       }
     }
   }
 
-  // this can save useless data as device ??
   async handleUpdateDevices(chunk: SubscribeEvent) {
-    const entries = this.dataEntriesIterator(chunk)
+    const items = this.dataEntriesIterator(chunk)
 
-    for (const entry of entries) {
-      const address = this.common.bufforToAddress(entry.address ?? [])
+    for (const item of items) {
+      const address = this.common.bufforToAddress(item.address ?? [])
 
-      const update = this.common.parseDeviceEntry(entry.data_entry ?? {})
+      const updates = item.entries
+        .map((entry) => this.common.parseDeviceEntry(entry))
+        .filter((entry) => entry)
 
-      if (!update) {
-        this.logger.debug('invalid entry key')
+      const update = Object.assign({}, ...updates)
+
+      if (updates.length === 0) {
+        this.logger.debug('invalid entry keys')
         continue
       }
 
@@ -98,6 +113,13 @@ export class TxHandler {
           { upsert: true }
         )
       } else {
+        // Create new device only if dapp is in data entries
+
+        if (!update.dapp) {
+          this.logger.debug('device dapp not specified')
+          continue
+        }
+
         await this.db.deviceRepository.save({ address, ...update, whitelisted: false })
       }
 

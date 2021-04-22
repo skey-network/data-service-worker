@@ -1,7 +1,7 @@
 import '../setup'
 import * as helper from '../helper'
 
-describe('handleAddDevice', () => {
+describe('handleAddDevices', () => {
   let app = helper.createApp()
 
   beforeAll(async () => {
@@ -12,7 +12,7 @@ describe('handleAddDevice', () => {
     await app.db.disconnect()
   })
 
-  it('adds device to database', async () => {
+  it('adds devices to database', async () => {
     const height = await app.blockchain.fetchHeight()
 
     const promise = app.listener.subscribe(
@@ -22,22 +22,29 @@ describe('handleAddDevice', () => {
 
     const spy = jest.spyOn(app.db.deviceRepository, 'save')
 
-    const deviceAddress = helper.lib.createAccount().address
+    const device1Address = helper.lib.createAccount().address
+    const device2Address = helper.lib.createAccount().address
 
     await helper.lib.insertData(
-      [{ key: `device_${deviceAddress}`, value: 'active' }],
+      [
+        { key: `device_${device1Address}`, value: 'active' },
+        { key: `device_${device2Address}`, value: 'active' }
+      ],
       helper.genesis
     )
 
     await helper.waitForCall(spy)
     await promise.cancel()
 
-    const result = await app.db.deviceRepository.findOne({ address: deviceAddress })
+    const dev1 = await app.db.deviceRepository.findOne({ address: device1Address })
+    const dev2 = await app.db.deviceRepository.findOne({ address: device2Address })
 
-    expect(result).toBeDefined()
-    expect(result?.address).toBeDefined()
-    expect(result?.dapp).toBeDefined()
-    expect(result?.owner).toBeDefined()
+    expect(dev1).toBeDefined()
+    expect(dev1?.address).toBeDefined()
+    expect(dev1?.dapp).toBeDefined()
+    expect(dev1?.owner).toBeDefined()
+
+    expect(dev2).toBeDefined()
 
     await helper.lib.waitForNBlocks(1)
   })

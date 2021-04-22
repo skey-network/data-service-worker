@@ -56,7 +56,7 @@ const exampleObject = {
   }
 }
 
-describe('handleUpdateDevice', () => {
+describe('handleUpdateDevices', () => {
   let app = helper.createApp()
 
   beforeEach(async () => {
@@ -135,7 +135,13 @@ describe('handleUpdateDevice', () => {
     const device = helper.lib.createAccount()
     await helper.lib.transfer(device.address, 1, helper.genesis)
 
-    await helper.lib.insertData([{ key: 'description', value: 'hello' }], device.seed)
+    await helper.lib.insertData(
+      [
+        { key: 'description', value: 'hello' },
+        { key: 'dapp', value: 'addr' }
+      ],
+      device.seed
+    )
 
     await helper.waitForCall(spy)
     await promise.cancel()

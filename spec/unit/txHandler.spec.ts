@@ -20,16 +20,40 @@ describe('txHandler', () => {
         update: {
           append: {
             transaction_state_updates: [
-              { data_entries: [{ address: 'aaa' }, { address: 'bbb' }] }
+              {
+                data_entries: [
+                  { address: 'aaa', data_entry: { key: 'a' } },
+                  { address: 'aaa', data_entry: { key: 'b' } },
+                  { address: 'bbb', data_entry: { key: 'c' } }
+                ]
+              }
             ]
           }
         }
       })
 
-      expect(iter.next()).toEqual({ done: false, value: { address: 'aaa' } })
-      expect(iter.next()).toEqual({ done: false, value: { address: 'bbb' } })
+      expect(iter.next()).toEqual({
+        done: false,
+        value: { address: 'aaa', entries: [{ key: 'a' }, { key: 'b' }] }
+      })
+
+      expect(iter.next()).toEqual({
+        done: false,
+        value: { address: 'bbb', entries: [{ key: 'c' }] }
+      })
+
       expect(iter.next()).toEqual({ done: true })
     })
+  })
+
+  it('empty entry', () => {
+    let iter = service.dataEntriesIterator({
+      update: {
+        append: { transaction_state_updates: [{ data_entries: [{ address: 'a' }] }] }
+      }
+    })
+
+    expect(iter.next().done).toBe(true)
   })
 
   it('no state updates', () => {
