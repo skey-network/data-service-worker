@@ -3,138 +3,132 @@ import * as helper from '../helper'
 
 describe('handleAddDevices', () => {
   let app = helper.createApp()
+  let save: jest.SpyInstance
 
-  beforeAll(async () => {
+  beforeEach(async () => {
+    app = helper.createApp()
     await app.db.connect()
+    save = jest.spyOn(app.db.deviceRepository, 'save')
   })
 
-  afterAll(async () => {
+  afterEach(async () => {
     await app.db.disconnect()
+    await helper.lib.waitForNBlocks(1)
   })
 
   it('adds devices to database', async () => {
-    const height = await app.blockchain.fetchHeight()
+    // GIVEN
+    const devices = helper.createMultipleAccounts(3)
 
-    const promise = app.listener.subscribe(
-      (chunk) => app.txHandler.handleAddDevices(chunk),
-      height
-    )
-
-    const spy = jest.spyOn(app.db.deviceRepository, 'save')
-
-    const device1Address = helper.lib.createAccount().address
-    const device2Address = helper.lib.createAccount().address
-
-    await helper.lib.insertData(
-      [
-        { key: `device_${device1Address}`, value: 'active' },
-        { key: `device_${device2Address}`, value: 'active' }
-      ],
+    const event = helper.lib.insertData(
+      devices.map((account) => ({ key: `device_${account.address}`, value: 'active' })),
       helper.genesis
     )
 
-    await helper.waitForCall(spy)
-    await promise.cancel()
+    // WHEN
+    await helper.testListener(
+      app,
+      app.txHandler.handleAddDevices.bind(app.txHandler),
+      event,
+      save
+    )
 
-    const dev1 = await app.db.deviceRepository.findOne({ address: device1Address })
-    const dev2 = await app.db.deviceRepository.findOne({ address: device2Address })
+    // THEN
+    const results = await Promise.all(
+      devices.map((account) =>
+        app.db.deviceRepository.findOne({ address: account.address })
+      )
+    )
 
-    expect(dev1).toBeDefined()
-    expect(dev1?.address).toBeDefined()
-    expect(dev1?.dapp).toBeDefined()
-    expect(dev1?.owner).toBeDefined()
-
-    expect(dev2).toBeDefined()
-
-    await helper.lib.waitForNBlocks(1)
+    results.forEach((result) => {
+      expect(result?.address).toBeDefined()
+      expect(result?.dapp).toBeDefined()
+      expect(result?.owner).toBeDefined()
+      expect(result?.whitelisted).toBe(true)
+    })
   })
 
   it('no updates', async () => {
-    const height = await app.blockchain.fetchHeight()
-    const count = await app.db.deviceRepository.count()
+    // GIVEN
+    const event = helper.lib.delay(3000)
 
-    const promise = app.listener.subscribe(
-      (chunk) => app.txHandler.handleAddDevices(chunk),
-      height
+    // WHEN
+    await helper.testListener(
+      app,
+      app.txHandler.handleAddDevices.bind(app.txHandler),
+      event,
+      save
     )
 
-    const spy = jest.spyOn(app.db.deviceRepository, 'save')
-
-    await helper.waitForCall(spy)
-    await promise.cancel()
-
-    expect(await app.db.deviceRepository.count()).toBe(count)
-
-    await helper.lib.waitForNBlocks(1)
+    // THEN
+    expect(save).toHaveBeenCalledTimes(0)
   })
 
   it('is not dapp', async () => {
-    const sender = helper.lib.createAccount()
-    const deviceAddress = helper.lib.createAccount().address
+    // GIVEN
+    const event = (async () => {
+      const sender = helper.lib.createAccount()
+      const deviceAddress = helper.lib.createAccount().address
 
-    const height = await app.blockchain.fetchHeight()
-    const count = await app.db.deviceRepository.count()
+      await helper.lib.transfer(sender.address, 1, helper.genesis)
 
-    const promise = app.listener.subscribe(
-      (chunk) => app.txHandler.handleAddDevices(chunk),
-      height
+      await helper.lib.insertData(
+        [{ key: `device_${deviceAddress}`, value: 'active' }],
+        sender.seed
+      )
+    })()
+
+    // WHEN
+    await helper.testListener(
+      app,
+      app.txHandler.handleAddDevices.bind(app.txHandler),
+      event,
+      save
     )
 
-    await helper.lib.transfer(sender.address, 1, helper.genesis)
-
-    await helper.lib.insertData(
-      [{ key: `device_${deviceAddress}`, value: 'active' }],
-      sender.seed
-    )
-
-    const spy = jest.spyOn(app.db.deviceRepository, 'save')
-
-    await helper.waitForCall(spy)
-    await promise.cancel()
-
-    expect(await app.db.deviceRepository.count()).toBe(count)
-
-    await helper.lib.waitForNBlocks(1)
+    // THEN
+    expect(save).toHaveBeenCalledTimes(0)
   })
 
   it('invalid entry key', async () => {
-    const height = await app.blockchain.fetchHeight()
-
-    const promise = app.listener.subscribe(
-      (chunk) => app.txHandler.handleAddDevices(chunk),
-      height
-    )
-
-    const spy = jest.spyOn(app.db.deviceRepository, 'save')
-
-    await helper.lib.insertData([{ key: `device_aaa`, value: 'active' }], helper.genesis)
-
-    await helper.waitForCall(spy)
-    await promise.cancel()
-
-    await helper.lib.waitForNBlocks(1)
-  })
-
-  it('invalid entry value', async () => {
-    const height = await app.blockchain.fetchHeight()
-
-    const promise = app.listener.subscribe(
-      (chunk) => app.txHandler.handleAddDevices(chunk),
-      height
-    )
-
-    const spy = jest.spyOn(app.db.deviceRepository, 'save')
-
-    const deviceAddress = helper.lib.createAccount().address
-
-    await helper.lib.insertData(
-      [{ key: `device_${deviceAddress}`, value: 'hello' }],
+    // GIVEN
+    const event = helper.lib.insertData(
+      [{ key: `device_aaa`, value: 'active' }],
       helper.genesis
     )
 
-    await helper.waitForCall(spy)
-    await promise.cancel()
+    // WHEN
+    await helper.testListener(
+      app,
+      app.txHandler.handleAddDevices.bind(app.txHandler),
+      event,
+      save
+    )
 
-    await helper.lib.waitForNBlocks(1)
+    // THEN
+    expect(save).toHaveBeenCalledTimes(0)
+  })
+
+  it('invalid entry value', async () => {
+    // GIVEN
+    const event = (async () => {
+      const deviceAddress = helper.lib.createAccount().address
+
+      await helper.lib.insertData(
+        [{ key: `device_${deviceAddress}`, value: 'hello' }],
+        helper.genesis
+      )
+    })()
+
+    // WHEN
+    await helper.testListener(
+      app,
+      app.txHandler.handleAddDevices.bind(app.txHandler),
+      event,
+      save
+    )
+
+    // THEN
+    expect(save).toHaveBeenCalledTimes(0)
   })
 })

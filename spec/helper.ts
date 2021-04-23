@@ -8,6 +8,7 @@ import { GrpcClient } from '../src/GrpcClient'
 import { Listener } from '../src/Listener'
 import { Logger } from '../src/Logger'
 import { TxHandler } from '../src/TxHandler'
+import { SubscribeEvent } from '../proto/interfaces/waves/events/grpc/SubscribeEvent'
 
 export const genesis = 'waves private node seed with waves tokens'
 
@@ -16,7 +17,7 @@ export const lib = getInstance({
   chainId: config.blockchain.chainId
 })
 
-export const waitForCall = (spy: jest.SpyInstance, timeout = 8000) => {
+export const waitForCall = (spy: jest.SpyInstance, timeout = 10_000) => {
   return new Promise<void>((resolve) => {
     const start = Date.now()
 
@@ -29,6 +30,26 @@ export const waitForCall = (spy: jest.SpyInstance, timeout = 8000) => {
       resolve()
     }, 100)
   })
+}
+
+export const createMultipleAccounts = (amount: number) => {
+  return [...Array(amount)].map(() => lib.createAccount())
+}
+
+export const testListener = async (
+  app: { listener: Listener; blockchain: Blockchain; txHandler: TxHandler },
+  handler: (chunk: SubscribeEvent) => any,
+  event: Promise<any>,
+  spy: jest.SpyInstance
+) => {
+  const height = await app.blockchain.fetchHeight()
+
+  const promise = app.listener.subscribe((chunk) => handler(chunk), height)
+
+  await event
+
+  await waitForCall(spy)
+  await promise.cancel()
 }
 
 export const createApp = () => {
