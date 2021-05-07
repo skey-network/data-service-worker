@@ -54,6 +54,9 @@ export class Device {
   @Column({ nullable: false, unique: true, type: 'string' })
   address: string
 
+  @Column({ type: 'boolean' })
+  whitelisted?: boolean
+
   @Column({ type: 'string' })
   name?: string
 
