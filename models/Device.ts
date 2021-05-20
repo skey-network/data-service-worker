@@ -1,6 +1,6 @@
-import { Column, Entity, ObjectID, ObjectIdColumn } from 'typeorm'
+import { createSchema, Type, typedModel } from 'ts-mongoose'
 
-export const types = Object.freeze([
+export const deviceTypes = Object.freeze([
   'car barrier',
   'human barrier',
   'elevator',
@@ -9,101 +9,56 @@ export const types = Object.freeze([
   'other'
 ])
 
-export class Location {
-  @Column({ type: 'number' })
-  lat: number
+const DeviceSchema = createSchema(
+  {
+    // ADDRESSES
+    address: Type.string({ required: true, index: true, unique: true }),
+    supplier: Type.string({ required: true, index: true }),
+    owner: Type.string({ required: true, index: true }),
 
-  @Column({ type: 'number' })
-  lng: number
+    // BASIC INFO
+    name: Type.string(),
+    description: Type.string(),
 
-  @Column({ type: 'number' })
-  alt?: number
-}
+    // LOCATION
+    location: Type.object().of({
+      lat: Type.number({ required: true }),
+      lng: Type.number({ required: true }),
+      alt: Type.number()
+    }),
 
-export class PhysicalAddress {
-  @Column({ type: 'string' })
-  addressLine1?: string
+    // PHYSICAL ADDRESS
+    physicalAddress: Type.object().of({
+      addressLine1: Type.string(),
+      addressLine2: Type.string(),
+      city: Type.string(),
+      postcode: Type.string(),
+      state: Type.string(),
+      country: Type.string(),
+      number: Type.string(),
+      floor: Type.string()
+    }),
 
-  @Column({ type: 'string' })
-  addressLine2?: string
+    // ADDITIONAL INFO
+    deviceType: Type.string({ enum: deviceTypes }),
+    additionalDescription: Type.string(),
+    assetUrl: Type.string(),
+    url: Type.string(),
+    contactInfo: Type.string(),
+    deviceModel: Type.string(),
 
-  @Column({ type: 'string' })
-  city?: string
+    // BOOLEANS
+    visible: Type.boolean({ default: true }),
+    active: Type.boolean({ default: true }),
+    connected: Type.boolean({ default: true }),
 
-  @Column({ type: 'string' })
-  postcode?: string
-
-  @Column({ type: 'string' })
-  state?: string
-
-  @Column({ type: 'string' })
-  country?: string
-
-  @Column({ type: 'string' })
-  number?: string
-
-  @Column({ type: 'string' })
-  floor?: string
-}
-
-@Entity({ name: 'devices' })
-export class Device {
-  @ObjectIdColumn()
-  id: ObjectID
-
-  @Column({ nullable: false, unique: true, type: 'string' })
-  address: string
-
-  @Column({ type: 'boolean' })
-  whitelisted?: boolean
-
-  @Column({ type: 'string' })
-  name?: string
-
-  @Column({ type: 'string' })
-  description?: string
-
-  @Column({ enum: types })
-  type?: string
-
-  @Column({ type: 'string' })
-  additionalDescription?: string
-
-  @Column({ type: 'string' })
-  assetUrl?: string
-
-  @Column({ type: 'string' })
-  url?: string
-
-  @Column({ type: 'string' })
-  contactInfo?: string
-
-  @Column({ type: 'boolean' })
-  visible?: boolean
-
-  @Column(() => Location)
-  location?: Location
-
-  @Column(() => PhysicalAddress)
-  physicalAddress?: PhysicalAddress
-
-  @Column({ type: 'boolean' })
-  active: boolean
-
-  @Column({ type: 'boolean' })
-  connected: boolean
-
-  @Column({ nullable: false, type: 'string' })
-  dapp: string
-
-  @Column({ nullable: false, type: 'string' })
-  owner: string
-
-  @Column({ type: 'string' })
-  deviceModel?: string
-
-  @Column({ type: 'simple-json' })
-  custom: {
-    [key: string]: string | number | boolean
+    // CUSTOM DATA
+    custom: Type.mixed()
+  },
+  {
+    // TIMESTAMPS
+    timestamps: { createdAt: true, updatedAt: true }
   }
-}
+)
+
+export const Device = typedModel('Device', DeviceSchema)

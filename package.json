@@ -21,9 +21,11 @@
     "dotenv": "^8.2.0",
     "injection-js": "^2.4.0",
     "mongodb": "^3.6.6",
+    "mongoose": "^5.12.10",
     "reflect-metadata": "^0.1.13",
-    "typeorm": "^0.2.32",
-    "skey-lib": "smartkeyplatform/SmartKey-Libs"
+    "skey-lib": "smartkeyplatform/SmartKey-Libs",
+    "ts-mongoose": "^0.0.24",
+    "typeorm": "^0.2.32"
   },
   "devDependencies": {
     "@types/jest": "^26.0.22",

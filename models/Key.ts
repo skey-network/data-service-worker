@@ -1,28 +1,18 @@
-import { Column, Entity, ObjectID, ObjectIdColumn } from 'typeorm'
+import { createSchema, Type, typedModel } from 'ts-mongoose'
 
-@Entity({ name: 'keys' })
-export class Key {
-  @ObjectIdColumn()
-  id: ObjectID
+export const KeySchema = createSchema(
+  {
+    assetId: Type.string({ required: true, index: true, unique: true }),
+    name: Type.string({ required: true }),
+    device: Type.string({ required: true, index: true }),
+    owner: Type.string({ required: true, index: true }),
+    issuer: Type.string({ required: true, index: true }),
+    validTo: Type.number({ required: true }),
+    issueTimestamp: Type.number({ required: true })
+  },
+  {
+    timestamps: { createdAt: true, updatedAt: true }
+  }
+)
 
-  @Column({ type: 'string', nullable: false })
-  name: string
-
-  @Column({ type: 'string', nullable: false })
-  device: string
-
-  @Column({ type: 'string', nullable: false })
-  owner: string
-
-  @Column({ type: 'string', nullable: false })
-  issuer: string
-
-  @Column({ type: 'number', nullable: false })
-  validTo: number
-
-  @Column({ type: 'number', nullable: false })
-  issueTimestamp: number
-
-  @Column({ type: 'boolean', nullable: false })
-  active: boolean
-}
+export const Key = typedModel('Key', KeySchema)

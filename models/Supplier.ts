@@ -1,19 +1,18 @@
-import { Column, Entity, ObjectID, ObjectIdColumn } from 'typeorm'
+import { createSchema, Type, typedModel } from 'ts-mongoose'
 
-@Entity({ name: 'suppliers' })
-export class Supplier {
-  @ObjectIdColumn()
-  id: ObjectID
+export const SupplierSchema = createSchema(
+  {
+    address: Type.string({ required: true, index: true, unique: true }),
+    name: Type.string(),
+    description: Type.string(),
+    devices: Type.array({
+      index: true,
+      required: true
+    }).of(Type.string({ required: true }))
+  },
+  {
+    timestamps: { createdAt: true, updatedAt: true }
+  }
+)
 
-  @Column({ nullable: false, unique: true, type: 'string' })
-  address: string
-
-  @Column({ type: 'string' })
-  name?: string
-
-  @Column({ type: 'string' })
-  description?: string
-
-  @Column({ type: 'array' })
-  keyWhitelist: string[]
-}
+export const Supplier = typedModel('Supplier', SupplierSchema)
