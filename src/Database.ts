@@ -1,4 +1,3 @@
-import { Injectable } from 'injection-js'
 import config from '../config'
 import mongoose from 'mongoose'
 
@@ -20,22 +19,21 @@ const connectOptions: mongoose.ConnectOptions = Object.freeze({
   validateOptions: true
 })
 
-@Injectable()
 export class Database {
-  async connect() {
+  static async connect() {
     if ([1, 2].includes(mongoose.connection.readyState)) return
 
     const uri = this.createUri(databaseOptions)
     await mongoose.connect(uri, connectOptions)
   }
 
-  async disconnect() {
+  static async disconnect() {
     if ([0, 3].includes(mongoose.connection.readyState)) return
 
     await mongoose.disconnect()
   }
 
-  private createUri(options: DatabaseOptions) {
+  static createUri(options: DatabaseOptions) {
     const { host, port, name, username, password } = options
     return `mongodb://${username}:${password}@${host}:${port}/${name}`
   }

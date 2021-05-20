@@ -1,4 +1,3 @@
-import { Injectable } from 'injection-js'
 import * as grpc from '@grpc/grpc-js'
 import * as protoLoader from '@grpc/proto-loader'
 import config from '../config'
@@ -13,7 +12,6 @@ const protoLoaderOptions: protoLoader.Options = Object.freeze({
   oneofs: true
 })
 
-@Injectable()
 export class GrpcClient {
   public blocksApiClient: BlocksApiClient
   public blockchainUpdatesApiClient: BlockchainUpdatesApiClient

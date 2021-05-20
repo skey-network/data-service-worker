@@ -82,15 +82,12 @@ const cases = [
 ]
 
 describe('Database integration', () => {
-  let database: Database
-
   beforeAll(async () => {
-    database = new Database()
-    await database.connect()
+    await Database.connect()
   })
 
   afterAll(async () => {
-    await database.disconnect()
+    await Database.disconnect()
   })
 
   describe.each(cases)('%s', ({ model, data, toString }) => {

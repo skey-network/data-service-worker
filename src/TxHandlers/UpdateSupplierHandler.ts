@@ -1,6 +1,5 @@
 import { IteratorItem, AbstractHandler } from './AbstractHandler'
 import { SubscribeEvent, Entry } from '../Types'
-import { MongoRepository } from 'typeorm'
 import config from '../../config'
 import {
   ACTIVE_KEYWORD,
@@ -9,6 +8,7 @@ import {
   INACTIVE_KEYWORD
 } from '../Constants'
 import { Logger } from '../Logger'
+import { Device } from '../../models/Device'
 
 const { dapp } = config.blockchain
 
@@ -16,13 +16,9 @@ const { dapp } = config.blockchain
 // Possible outcome is updating device or creating empty in db
 
 export class UpdateSupplierHandler extends AbstractHandler {
-  protected logger = new Logger(UpdateSupplierHandler.name)
+  static logger = new Logger(UpdateSupplierHandler.name)
 
-  constructor(private repository: MongoRepository<Device>) {
-    super()
-  }
-
-  public async handle(chunk: SubscribeEvent) {
+  static async handle(chunk: SubscribeEvent) {
     const items = this.dataEntriesIterator(chunk)
 
     for (const item of items) {
@@ -30,7 +26,7 @@ export class UpdateSupplierHandler extends AbstractHandler {
     }
   }
 
-  private async handleSingleUpdate(item: IteratorItem) {
+  static async handleSingleUpdate(item: IteratorItem) {
     const address = this.bufforToAddress(item.address ?? []) // dappAddress
 
     if (address !== dapp) {
@@ -43,7 +39,7 @@ export class UpdateSupplierHandler extends AbstractHandler {
     }
   }
 
-  private async handleSingleEntry(entry: Entry) {
+  static async handleSingleEntry(entry: Entry) {
     if (DEVICE_REGEX.test(entry.key ?? '')) {
       this.logger.debug('invalid entry key')
       return
@@ -62,16 +58,16 @@ export class UpdateSupplierHandler extends AbstractHandler {
     await this.save(address, entry.string_value)
   }
 
-  private async save(address: string, status: string) {
+  static async save(address: string, status: string) {
     const whitelisted = status === ACTIVE_KEYWORD
 
-    const device = await this.repository.findOne({ address })
+    const device = await Device.findOne({ address })
 
     if (device) {
-      await this.repository.findOneAndUpdate({ address }, { whitelisted })
+      await Device.updateOne({ address }, { whitelisted })
       this.logger.debug(`Updated device ${address} dapp whitelist`)
     } else {
-      await this.repository.insertOne({ address, whitelisted })
+      await Device.create({ address, whitelisted })
       this.logger.log(`Created device ${address} from dapp whitelist`)
     }
   }

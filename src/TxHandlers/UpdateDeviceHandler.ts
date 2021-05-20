@@ -1,7 +1,7 @@
 import { IteratorItem, AbstractHandler } from './AbstractHandler'
 import { SubscribeEvent, Entry } from '../Types'
-import { MongoRepository } from 'typeorm'
 import { Logger } from '../Logger'
+import { Device } from '../../models/Device'
 
 const keysMap = Object.freeze({
   rootStrings: [
@@ -13,9 +13,11 @@ const keysMap = Object.freeze({
     'url',
     'contact',
     'floor',
-    'dapp',
+    'supplier',
     'owner',
-    'device_model'
+    'device_model',
+    'device_type',
+    'type'
   ],
   addressStrings: [
     'address_line_1',
@@ -34,13 +36,9 @@ const keysMap = Object.freeze({
 // Possible outcomes are saving and creating device in db
 
 export class UpdateDeviceHandler extends AbstractHandler {
-  protected logger = new Logger(UpdateDeviceHandler.name)
+  static logger = new Logger(UpdateDeviceHandler.name)
 
-  constructor(private repository: MongoRepository<Device>) {
-    super()
-  }
-
-  public async handle(chunk: SubscribeEvent) {
+  static async handle(chunk: SubscribeEvent) {
     const items = this.dataEntriesIterator(chunk)
 
     for (const item of items) {
@@ -48,7 +46,7 @@ export class UpdateDeviceHandler extends AbstractHandler {
     }
   }
 
-  private async handleSingleUpdate(item: IteratorItem) {
+  static async handleSingleUpdate(item: IteratorItem) {
     const address = this.bufforToAddress(item.address ?? [])
 
     const update = this.getUpdate(item.entries)
@@ -57,27 +55,24 @@ export class UpdateDeviceHandler extends AbstractHandler {
     await this.save(address, update)
   }
 
-  private async save(address: string, update: any) {
-    const device = await this.repository.findOne({ address })
+  static async save(address: string, update: any) {
+    const device = await Device.findOne({ address })
 
     if (device) {
-      await this.repository.findOneAndUpdate(
-        { address: device.address },
-        { $set: update }
-      )
+      await Device.updateOne({ address: device.address }, { $set: update })
       this.logger.log(`Device ${address} updated`)
     } else {
-      if (!update.dapp || !update.owner) {
+      if (!update.supplier || !update.owner) {
         this.logger.debug('device dapp && owner not specified')
         return
       }
 
-      await this.repository.insertOne({ address, ...update, whitelisted: false })
+      await Device.create({ address, ...update, whitelisted: false })
       this.logger.log(`Device ${address} created`)
     }
   }
 
-  private getUpdate(entries: Entry[]): any | null {
+  static getUpdate(entries: Entry[]): any | null {
     const updates = entries
       .map((entry) => this.parseDeviceEntry(entry))
       .filter((entry) => entry)
@@ -90,7 +85,7 @@ export class UpdateDeviceHandler extends AbstractHandler {
     return Object.assign({}, ...updates)
   }
 
-  private parseDeviceEntry(entry: Entry): Object | null {
+  static parseDeviceEntry(entry: Entry): Object | null {
     if (!entry.key) return null
 
     if (keysMap.rootStrings.includes(entry.key)) {
@@ -122,7 +117,7 @@ export class UpdateDeviceHandler extends AbstractHandler {
     return null
   }
 
-  private snakeToCamel(str: string) {
+  static snakeToCamel(str: string) {
     return str.replace(/([-_]\w)/g, (g) => g[1].toUpperCase())
   }
 }

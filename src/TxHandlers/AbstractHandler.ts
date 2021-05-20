@@ -8,17 +8,17 @@ export interface IteratorItem {
 }
 
 export abstract class AbstractHandler {
-  protected logger = new Logger(AbstractHandler.name)
+  static logger = new Logger(AbstractHandler.name)
 
-  public async handle(chunk: SubscribeEvent) {
+  static async handle(chunk: SubscribeEvent) {
     throw new Error('not implemented')
   }
 
-  public bufforToAddress(input: Crypto.TBinaryIn) {
+  static bufforToAddress(input: Crypto.TBinaryIn) {
     return Crypto.base58Encode(input)
   }
 
-  public *dataEntriesIterator(chunk: SubscribeEvent): Generator<IteratorItem> {
+  static *dataEntriesIterator(chunk: SubscribeEvent): Generator<IteratorItem> {
     const stateUpdates = chunk.update?.append?.transaction_state_updates
 
     if (!stateUpdates || stateUpdates?.length === 0) {

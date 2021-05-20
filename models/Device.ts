@@ -13,8 +13,8 @@ const DeviceSchema = createSchema(
   {
     // ADDRESSES
     address: Type.string({ required: true, index: true, unique: true }),
-    supplier: Type.string({ required: true, index: true }),
-    owner: Type.string({ required: true, index: true }),
+    supplier: Type.string({ index: true }),
+    owner: Type.string({ index: true }),
 
     // BASIC INFO
     name: Type.string(),
