@@ -4,6 +4,7 @@ import { MongoConnectionOptions } from 'typeorm/driver/mongodb/MongoConnectionOp
 import config from '../config'
 import { Device } from '../models/Device'
 import { Key } from '../models/Key'
+import { Supplier } from '../models/Supplier'
 
 export const connectionOptions: MongoConnectionOptions = Object.freeze({
   name: 'default',
@@ -16,7 +17,7 @@ export const connectionOptions: MongoConnectionOptions = Object.freeze({
   useNewUrlParser: true,
   useUnifiedTopology: true,
   validateOptions: true,
-  entities: [Device, Key],
+  entities: [Device, Key, Supplier],
   synchronize: true
 })
 
@@ -25,11 +26,13 @@ export class Db {
   private connection: Connection
   private _deviceRepository: MongoRepository<Device>
   private _keyRepository: MongoRepository<Key>
+  private _supplierRepository: MongoRepository<Supplier>
 
   async connect() {
     this.connection = await createConnection(connectionOptions)
     this._deviceRepository = this.connection.getMongoRepository(Device)
     this._keyRepository = this.connection.getMongoRepository(Key)
+    this._supplierRepository = this.connection.getMongoRepository(Supplier)
   }
 
   async disconnect() {
@@ -42,5 +45,9 @@ export class Db {
 
   get keyRepository() {
     return this._keyRepository
+  }
+
+  get supplierRepository() {
+    return this._supplierRepository
   }
 }

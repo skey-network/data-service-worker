@@ -1,10 +1,9 @@
 import { Injectable } from 'injection-js'
 import * as grpc from '@grpc/grpc-js'
 import * as protoLoader from '@grpc/proto-loader'
-import { BlocksApiClient } from '../proto/interfaces/waves/node/grpc/BlocksApi'
 import config from '../config'
-import { BlockchainUpdatesApiClient } from '../proto/interfaces/waves/events/grpc/BlockchainUpdatesApi'
 import { readdirSync } from 'fs'
+import type { BlocksApiClient, BlockchainUpdatesApiClient } from './Types'
 
 const protoLoaderOptions: protoLoader.Options = Object.freeze({
   keepCase: true,

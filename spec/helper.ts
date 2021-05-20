@@ -7,7 +7,7 @@ import { Common } from '../src/Common'
 import { GrpcClient } from '../src/GrpcClient'
 import { Listener } from '../src/Listener'
 import { Logger } from '../src/Logger'
-import { TxHandler } from '../src/TxHandler'
+import { TxHandler } from '../src/TxHandler.old'
 import { SubscribeEvent } from '../proto/interfaces/waves/events/grpc/SubscribeEvent'
 
 export const genesis = 'waves private node seed with waves tokens'

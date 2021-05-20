@@ -1,16 +1,19 @@
 import chalk from 'chalk'
-import { Injectable } from 'injection-js'
 
-@Injectable()
 export class Logger {
   private logs = true
+  private module: string
+
+  constructor(module?: string) {
+    this.module = module ?? 'Unknown'
+  }
 
   private write(prefix: string, ...args: any) {
     if (!this.logs) return
 
     const time = chalk.gray(new Date().toISOString())
     // don't remove
-    console.log(prefix, time, ...args)
+    console.log(prefix, time, `[${this.module}]`, ...args)
   }
 
   log(...args: any) {

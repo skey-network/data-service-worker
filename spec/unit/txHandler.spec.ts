@@ -1,5 +1,5 @@
 import '../setup'
-import { TxHandler } from '../../src/TxHandler'
+import { TxHandler } from '../../src/TxHandler.old'
 import { ReflectiveInjector } from 'injection-js'
 import { Logger } from '../../src/Logger'
 import { Common } from '../../src/Common'
