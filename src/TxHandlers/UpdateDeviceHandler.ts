@@ -4,31 +4,9 @@ import { Logger } from '../Logger'
 import { Device } from '../../models/Device'
 
 const keysMap = Object.freeze({
-  rootStrings: [
-    'name',
-    'type',
-    'description',
-    'additional_description',
-    'asset_url',
-    'url',
-    'contact',
-    'floor',
-    'supplier',
-    'owner',
-    'device_model',
-    'device_type',
-    'type'
-  ],
-  addressStrings: [
-    'address_line_1',
-    'address_line_2',
-    'city',
-    'postcode',
-    'state',
-    'country',
-    'number'
-  ],
-  location: ['lat', 'lng', 'alt'],
+  strings: ['name', 'description', 'type', 'supplier', 'owner', 'version'],
+  floats: ['lat', 'lng', 'alt'],
+  json: ['details', 'custom'],
   booleans: ['visible', 'active', 'connected']
 })
 
@@ -40,17 +18,17 @@ export class UpdateDeviceHandler extends AbstractHandler {
 
   static async handle(chunk: SubscribeEvent) {
     const items = this.dataEntriesIterator(chunk)
-
     for (const item of items) {
       await this.handleSingleUpdate(item)
     }
   }
-
   static async handleSingleUpdate(item: IteratorItem) {
     const address = this.bufforToAddress(item.address ?? [])
+    const update = this.parseEntries(item.entries)
 
-    const update = this.getUpdate(item.entries)
-    if (!update) return
+    if (!update) return this.logger.debug('no updates')
+
+    console.log(update)
 
     await this.save(address, update)
   }
@@ -62,62 +40,55 @@ export class UpdateDeviceHandler extends AbstractHandler {
       await Device.updateOne({ address: device.address }, { $set: update })
       this.logger.log(`Device ${address} updated`)
     } else {
-      if (!update.supplier || !update.owner) {
-        this.logger.debug('device dapp && owner not specified')
-        return
+      if (update.type !== 'device') {
+        return this.logger.debug('invalid type')
       }
 
-      await Device.create({ address, ...update, whitelisted: false })
+      await Device.create({ address, ...update })
       this.logger.log(`Device ${address} created`)
     }
   }
 
-  static getUpdate(entries: Entry[]): any | null {
+  static parseEntries(entries: Entry[]): any | null {
     const updates = entries
-      .map((entry) => this.parseDeviceEntry(entry))
-      .filter((entry) => entry)
+      .map((entry) => {
+        const key = entry.key ?? ''
+        const { string_value, bool_value } = entry
 
-    if (updates.length === 0) {
-      this.logger.debug('invalid entry keys')
-      return null
-    }
+        if (keysMap.strings.includes(key)) {
+          return { [key]: string_value ?? '' }
+        }
+
+        if (keysMap.floats.includes(key)) {
+          return { [key]: Number(string_value ?? '0') }
+        }
+
+        if (keysMap.json.includes(key)) {
+          const obj = this.tryParse(string_value ?? '')
+
+          if (!obj) {
+            return this.logger.debug('invalid json')
+          }
+
+          return { [key]: obj }
+        }
+
+        if (keysMap.booleans.includes(key)) {
+          return { [key]: bool_value ?? false }
+        }
+      })
+      .filter((update) => update)
+
+    if (updates.length === 0) return null
 
     return Object.assign({}, ...updates)
   }
 
-  static parseDeviceEntry(entry: Entry): Object | null {
-    if (!entry.key) return null
-
-    if (keysMap.rootStrings.includes(entry.key)) {
-      return { [this.snakeToCamel(entry.key)]: entry.string_value }
+  static tryParse(text: string) {
+    try {
+      return JSON.parse(text)
+    } catch {
+      return null
     }
-
-    if (keysMap.addressStrings.includes(entry.key)) {
-      return { [`physicalAddress.${this.snakeToCamel(entry.key)}`]: entry.string_value }
-    }
-
-    if (keysMap.location.includes(entry.key)) {
-      return { [`location.${entry.key}`]: Number(entry.string_value ?? '0') }
-    }
-
-    if (keysMap.booleans.includes(entry.key)) {
-      if (entry.value === 'bool_value') {
-        return { [entry.key]: entry.bool_value }
-      }
-
-      if (entry.value === 'string_value') {
-        return { [entry.key]: entry.string_value === 'true' }
-      }
-    }
-
-    if (/^custom_/.test(entry.key)) {
-      return { [`custom.${entry.key.replace('custom_', '')}`]: entry.string_value }
-    }
-
-    return null
-  }
-
-  static snakeToCamel(str: string) {
-    return str.replace(/([-_]\w)/g, (g) => g[1].toUpperCase())
   }
 }

@@ -21,36 +21,34 @@ const DeviceSchema = createSchema(
     description: Type.string(),
 
     // LOCATION
-    location: Type.object().of({
-      lat: Type.number({ required: true }),
-      lng: Type.number({ required: true }),
-      alt: Type.number()
-    }),
-
-    // PHYSICAL ADDRESS
-    physicalAddress: Type.object().of({
-      addressLine1: Type.string(),
-      addressLine2: Type.string(),
-      city: Type.string(),
-      postcode: Type.string(),
-      state: Type.string(),
-      country: Type.string(),
-      number: Type.string(),
-      floor: Type.string()
-    }),
-
-    // ADDITIONAL INFO
-    deviceType: Type.string({ enum: deviceTypes }),
-    additionalDescription: Type.string(),
-    assetUrl: Type.string(),
-    url: Type.string(),
-    contactInfo: Type.string(),
-    deviceModel: Type.string(),
+    lat: Type.number(),
+    lng: Type.number(),
+    alt: Type.number(),
 
     // BOOLEANS
     visible: Type.boolean({ default: true }),
     active: Type.boolean({ default: true }),
     connected: Type.boolean({ default: true }),
+
+    // ADDITIONAL INFO
+    details: Type.object().of({
+      deviceType: Type.string({ enum: deviceTypes }),
+      deviceModel: Type.string(),
+      additionalDescription: Type.string(),
+      assetUrl: Type.string(),
+      url: Type.string(),
+      contactInfo: Type.string(),
+      physicalAddress: Type.object().of({
+        addressLine1: Type.string(),
+        addressLine2: Type.string(),
+        city: Type.string(),
+        postcode: Type.string(),
+        state: Type.string(),
+        country: Type.string(),
+        number: Type.string(),
+        floor: Type.string()
+      })
+    }),
 
     // CUSTOM DATA
     custom: Type.mixed()

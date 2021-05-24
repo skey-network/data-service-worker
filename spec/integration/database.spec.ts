@@ -16,27 +16,27 @@ const cases = [
       owner: 'owner_addr',
       name: 'device name',
       description: 'device_description',
-      location: {
-        lat: 50.2,
-        lng: -0.5,
-        alt: 60
+      lat: 50.2,
+      lng: -0.5,
+      alt: 60,
+      details: {
+        physicalAddress: {
+          addressLine1: 'test',
+          addressLine2: 'test',
+          city: 'test',
+          postcode: 'test',
+          state: 'test',
+          country: 'test',
+          number: 'test',
+          floor: 'test'
+        },
+        deviceType: 'other',
+        additionalDescription: 'test',
+        assetUrl: 'test',
+        url: 'test',
+        contactInfo: 'test',
+        deviceModel: 'test'
       },
-      physicalAddress: {
-        addressLine1: 'test',
-        addressLine2: 'test',
-        city: 'test',
-        postcode: 'test',
-        state: 'test',
-        country: 'test',
-        number: 'test',
-        floor: 'test'
-      },
-      deviceType: 'other',
-      additionalDescription: 'test',
-      assetUrl: 'test',
-      url: 'test',
-      contactInfo: 'test',
-      deviceModel: 'test',
       visible: false,
       active: true,
       connected: true,
@@ -52,7 +52,8 @@ const cases = [
       address: 'sss',
       name: 'supplier',
       description: 'desc',
-      devices: ['dev1', 'dev2']
+      devices: ['dev1', 'dev2'],
+      whitelisted: false
     }
   },
   {

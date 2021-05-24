@@ -1,6 +1,6 @@
 export default {
   blockchain: {
-    dapp: process.env.BLOCKCHAIN_DAPP!,
+    dappFatherAddress: process.env.BLOCKCHAIN_DAPP_FATHER_ADDRESS!,
     nodeUrl: process.env.BLOCKCHAIN_NODE_URL ?? 'http://localhost:6869',
     chainId: process.env.BLOCKCHAIN_CHAIN_ID ?? 'R'
   },
@@ -18,7 +18,7 @@ export default {
   }
 }
 
-export const requiredFields = ['BLOCKCHAIN_DAPP']
+export const requiredFields = ['BLOCKCHAIN_DAPP_FATHER_ADDRESS']
 
 export const validateEnv = () => {
   requiredFields.forEach((field) => {

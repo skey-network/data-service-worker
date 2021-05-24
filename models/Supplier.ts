@@ -3,6 +3,7 @@ import { createSchema, Type, typedModel } from 'ts-mongoose'
 export const SupplierSchema = createSchema(
   {
     address: Type.string({ required: true, index: true, unique: true }),
+    whitelisted: Type.boolean({ default: false }),
     name: Type.string(),
     description: Type.string(),
     devices: Type.array({

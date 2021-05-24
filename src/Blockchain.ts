@@ -1,13 +1,27 @@
 import { GrpcClient } from './GrpcClient'
-import { SubscribeEvent, SubscribeRequest } from './Types'
+import * as Crypto from '@waves/ts-lib-crypto'
+import { AssetInfoResponse, SubscribeEvent, SubscribeRequest } from './Types'
 
 export class Blockchain {
   static grpcClient = new GrpcClient()
 
+  static fetchAsset(assetId: string) {
+    return new Promise<AssetInfoResponse>((resolve, reject) => {
+      this.grpcClient.assetsApiClient.GetInfo(
+        { asset_id: Crypto.base58Decode(assetId) },
+        (err, res) => {
+          if (err || !res) return reject(err)
+
+          resolve(res)
+        }
+      )
+    })
+  }
+
   static fetchHeight() {
     return new Promise<number>((resolve, reject) => {
       this.grpcClient.blocksApiClient.GetCurrentHeight({}, (err, res) => {
-        if (err) reject(err)
+        if (err || !res) return reject(err)
 
         resolve(res!.value)
       })
@@ -37,6 +51,13 @@ export class Blockchain {
 
     const promise = new Promise<void>((resolve, reject) => {
       call.on('data', callback)
+      // call.on(
+      //   'data',
+      //   (c) =>
+      //     // console.log(c.update.append.transaction_state_updates[0]?.assets)
+      //     console.log(c.update.append.transaction_state_updates[0])
+      //   // console.log(getDataEntries(getStateUpdates(c)).map((c) => c.entries))
+      // )
 
       call.on('end', resolve)
       call.on('close', resolve)
