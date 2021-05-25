@@ -59,7 +59,7 @@ export const save = async (assetId: string, asset: AssetInfoResponse, owner?: st
 
   const issuer = Crypto.address(
     { publicKey: asset.issuer ?? [] },
-    config.blockchain.chainId
+    config().blockchain.chainId
   )
 
   const obj = {

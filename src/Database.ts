@@ -9,7 +9,7 @@ export interface DatabaseOptions {
   password: string
 }
 
-const databaseOptions: DatabaseOptions = config.db
+const databaseOptions: DatabaseOptions = config().db
 
 const connectOptions: mongoose.ConnectOptions = Object.freeze({
   useNewUrlParser: true,

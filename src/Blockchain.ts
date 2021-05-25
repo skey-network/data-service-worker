@@ -3,9 +3,9 @@ import * as Crypto from '@waves/ts-lib-crypto'
 import { AssetInfoResponse, SubscribeEvent, SubscribeRequest } from './Types'
 
 export class Blockchain {
-  static grpcClient = new GrpcClient()
+  constructor(private grpcClient: GrpcClient) {}
 
-  static fetchAsset(assetId: string) {
+  public fetchAsset(assetId: string) {
     return new Promise<AssetInfoResponse>((resolve, reject) => {
       this.grpcClient.assetsApiClient.GetInfo(
         { asset_id: Crypto.base58Decode(assetId) },
@@ -18,7 +18,7 @@ export class Blockchain {
     })
   }
 
-  static fetchHeight() {
+  public fetchHeight() {
     return new Promise<number>((resolve, reject) => {
       this.grpcClient.blocksApiClient.GetCurrentHeight({}, (err, res) => {
         if (err || !res) return reject(err)
@@ -28,13 +28,13 @@ export class Blockchain {
     })
   }
 
-  static delay(timeout: number) {
+  public delay(timeout: number) {
     return new Promise<void>((resolve) => {
       setTimeout(resolve, timeout)
     })
   }
 
-  static subscribe(
+  public subscribe(
     callback: (chunk: SubscribeEvent) => any,
     fromHeight: number,
     toHeight?: number

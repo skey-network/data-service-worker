@@ -17,7 +17,7 @@ export class DappFatherHandler extends AbstractHandler {
   }
 
   static async handleSingleUpdate(item: IteratorItem) {
-    const { dappFatherAddress } = config.blockchain
+    const { dappFatherAddress } = config().blockchain
     const address = this.bufforToAddress(item.address ?? [])
 
     if (address !== dappFatherAddress) {

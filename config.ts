@@ -1,4 +1,4 @@
-export default {
+export default () => ({
   blockchain: {
     dappFatherAddress: process.env.BLOCKCHAIN_DAPP_FATHER_ADDRESS!,
     nodeUrl: process.env.BLOCKCHAIN_NODE_URL ?? 'http://localhost:6869',
@@ -16,7 +16,7 @@ export default {
     updatesPort: Number(process.env.GRPC_UPDATES_PORT ?? '6881'),
     apiPort: Number(process.env.GRPC_API_PORT ?? '6877')
   }
-}
+})
 
 export const requiredFields = ['BLOCKCHAIN_DAPP_FATHER_ADDRESS']
 

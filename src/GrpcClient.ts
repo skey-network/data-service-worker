@@ -22,7 +22,7 @@ export class GrpcClient {
   constructor() {
     this.proto = this.loadProto()
     const { node, events } = this.proto
-    const { apiPort, updatesPort } = config.grpc
+    const { apiPort, updatesPort } = config().grpc
 
     this.blocksApiClient = this.createApi(node.grpc.BlocksApi, apiPort)
     this.assetsApiClient = this.createApi(node.grpc.AssetsApi, apiPort)
@@ -34,7 +34,7 @@ export class GrpcClient {
   }
 
   public createApi<T>(obj: any, port: number) {
-    const url = `${config.grpc.host}:${port}`
+    const url = `${config().grpc.host}:${port}`
     const client = new obj(url, grpc.credentials.createInsecure())
     return client as T
   }
