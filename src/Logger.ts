@@ -10,6 +10,7 @@ export class Logger {
 
   private write(prefix: string, ...args: any) {
     if (!this.logs) return
+    if (process.env.MODE === 'test') return
 
     const time = chalk.gray(new Date().toISOString())
     // don't remove
