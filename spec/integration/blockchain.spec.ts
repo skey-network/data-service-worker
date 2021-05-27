@@ -1,8 +1,7 @@
 import '../setup'
 
-import { Blockchain } from '../../src/Blockchain'
 import * as helper from '../helper'
-import { ReflectiveInjector } from 'injection-js'
+import { Blockchain } from '../../src/Blockchain'
 import { GrpcClient } from '../../src/GrpcClient'
 import { SubscribeEvent } from '../../src/Types'
 
@@ -18,6 +17,20 @@ describe('Blockchain', () => {
       const height = await instance.fetchHeight()
 
       expect(height).toBeGreaterThan(0)
+    })
+  })
+
+  describe('fetchAsset', () => {
+    let assetId = ''
+
+    beforeAll(async () => {
+      assetId = await helper.lib.generateKey('aaa', 1000, helper.seeds.dappFather)
+    })
+
+    it('returns object', async () => {
+      const asset = await instance.fetchAsset(assetId)
+
+      expect(asset.issuer).toBeDefined()
     })
   })
 

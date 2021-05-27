@@ -1,13 +1,14 @@
-import { ReflectiveInjector } from 'injection-js'
 import { getInstance } from 'skey-lib'
 import config from '../config'
 import { Blockchain } from '../src/Blockchain'
 import { GrpcClient } from '../src/GrpcClient'
-import { Logger } from '../src/Logger'
-import { SubscribeEvent } from '../proto/interfaces/waves/events/grpc/SubscribeEvent'
+import { SubscribeEvent } from '../src/Types'
 
-export const genesis =
-  'seed seed seed seed seed seed seed seed seed seed seed seed seed seed seed'
+export const seeds = {
+  genesis: 'seed seed seed seed seed seed seed seed seed seed seed seed seed seed seed',
+  dappFather:
+    'exist soldier arrow plunge gospel stairs time true tip cruise cheese any gas iron renew'
+}
 
 export const lib = getInstance({
   nodeUrl: config().blockchain.nodeUrl,
@@ -16,37 +17,25 @@ export const lib = getInstance({
 
 export const delay = lib.delay
 
-// export const waitForCall = (spy: jest.SpyInstance, timeout = 10_000) => {
-//   return new Promise<void>((resolve) => {
-//     const start = Date.now()
-
-//     const handle = setInterval(() => {
-//       const timeoutReached = Date.now() - start > timeout
-
-//       if (spy.mock.calls.length === 0 && !timeoutReached) return
-
-//       clearInterval(handle)
-//       resolve()
-//     }, 100)
-//   })
-// }
-
-export const createMultipleAccounts = (amount: number) => {
-  return [...Array(amount)].map(() => lib.createAccount())
+export const createAccount = () => {
+  const { address, seed } = lib.createAccount()
+  return { address, seed }
 }
 
-// export const testListener = async (
-//   app: { listener: Listener; blockchain: Blockchain; txHandler: TxHandler },
-//   handler: (chunk: SubscribeEvent) => any,
-//   event: Promise<any>,
-//   spy: jest.SpyInstance
-// ) => {
-//   const height = await app.blockchain.fetchHeight()
+export const sponsor = (address: string, amount = 1) =>
+  lib.transfer(address, amount, seeds.genesis)
 
-//   const promise = app.listener.subscribe((chunk) => handler(chunk), height)
+export const createMultipleAccounts = (amount: number) => {
+  return [...Array(amount)].map(() => createAccount())
+}
 
-//   await event
+export const getListenerInstance = async (
+  handler: (chunk: SubscribeEvent) => Promise<void>
+) => {
+  const grpcClient = new GrpcClient()
+  const blockchainService = new Blockchain(grpcClient)
 
-//   await waitForCall(spy)
-//   await promise.cancel()
-// }
+  const height = await blockchainService.fetchHeight()
+
+  return blockchainService.subscribe(handler, height).cancel
+}
