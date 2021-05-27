@@ -1,8 +1,7 @@
 import { getInstance } from 'skey-lib'
 import config from '../config'
-import { Blockchain } from '../src/Blockchain'
-import { GrpcClient } from '../src/GrpcClient'
-import { SubscribeEvent } from '../src/Types'
+import * as Blockchain from '../src/Blockchain'
+import { parseUpdate, Update } from '../src/UpdateParser'
 
 export const seeds = {
   genesis: 'seed seed seed seed seed seed seed seed seed seed seed seed seed seed seed',
@@ -29,13 +28,7 @@ export const createMultipleAccounts = (amount: number) => {
   return [...Array(amount)].map(() => createAccount())
 }
 
-export const getListenerInstance = async (
-  handler: (chunk: SubscribeEvent) => Promise<void>
-) => {
-  const grpcClient = new GrpcClient()
-  const blockchainService = new Blockchain(grpcClient)
-
-  const height = await blockchainService.fetchHeight()
-
-  return blockchainService.subscribe(handler, height).cancel
+export const getListenerInstance = async (handler: (update: Update) => Promise<void>) => {
+  const height = await Blockchain.fetchHeight()
+  return Blockchain.subscribe((chunk) => handler(parseUpdate(chunk)), height).cancel
 }

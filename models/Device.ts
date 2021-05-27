@@ -9,7 +9,7 @@ export const deviceTypes = Object.freeze([
   'other'
 ])
 
-const DeviceSchema = createSchema(
+export const DeviceSchema = createSchema(
   {
     // ADDRESSES
     address: Type.string({ required: true, index: true, unique: true }),
@@ -26,9 +26,9 @@ const DeviceSchema = createSchema(
     alt: Type.number(),
 
     // BOOLEANS
-    visible: Type.boolean({ default: true }),
-    active: Type.boolean({ default: true }),
-    connected: Type.boolean({ default: true }),
+    visible: Type.boolean({ default: false }),
+    active: Type.boolean({ default: false }),
+    connected: Type.boolean({ default: false }),
 
     // ADDITIONAL INFO
     details: Type.object().of({
@@ -51,7 +51,9 @@ const DeviceSchema = createSchema(
     }),
 
     // CUSTOM DATA
-    custom: Type.mixed()
+    custom: Type.mixed(),
+
+    keys: Type.array({ index: true, required: true }).of(Type.string({ required: true }))
   },
   {
     // TIMESTAMPS

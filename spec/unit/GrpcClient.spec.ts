@@ -2,26 +2,16 @@ import '../setup'
 
 import * as protoLoader from '@grpc/proto-loader'
 import * as grpc from '@grpc/grpc-js'
-import { GrpcClient } from '../../src/GrpcClient'
+import * as GrpcClient from '../../src/GrpcClient'
 import config from '../../config'
 
 describe('GrpcClient', () => {
-  let service: GrpcClient
-
-  beforeEach(() => {
-    jest.restoreAllMocks()
-    service = new GrpcClient()
-  })
-
   describe('loadProto', () => {
-    it('loads correct files', () => {
-      const loadSync = jest.spyOn(protoLoader, 'loadSync').mockImplementation()
-
-      jest.spyOn(grpc, 'loadPackageDefinition').mockReturnValue({ waves: {} })
+    it('loads correct proto from files', () => {
+      const loadSync = jest.spyOn(protoLoader, 'loadSync')
 
       const cwd = process.cwd()
-
-      service.loadProto()
+      const proto = GrpcClient.loadProto()
 
       const arr = [
         `${cwd}/proto/accounts_api.proto`,
@@ -40,11 +30,8 @@ describe('GrpcClient', () => {
       ]
 
       expect(loadSync.mock.calls[0][0]).toEqual(arr)
-    })
-
-    it('has correct proto object', () => {
-      expect(service.proto.node.grpc).toBeDefined()
-      expect(service.proto.events.grpc).toBeDefined()
+      expect(proto.node.grpc).toBeDefined()
+      expect(proto.events.grpc).toBeDefined()
     })
   })
 
@@ -58,7 +45,7 @@ describe('GrpcClient', () => {
         }
       }
 
-      const client = service.createApi(TestClass, 3000)
+      const client = GrpcClient.createApi(TestClass, 3000)
 
       expect(fn).toHaveBeenCalledTimes(1)
       expect(fn.mock.calls[0][0]).toBe(`${config().grpc.host}:3000`)
@@ -67,10 +54,13 @@ describe('GrpcClient', () => {
     })
   })
 
-  describe('constructor', () => {
+  describe('createGrpcClient', () => {
     it('apis are defined', () => {
-      expect(service.blockchainUpdatesApiClient).toBeDefined()
-      expect(service.blocksApiClient).toBeDefined()
+      const instance = GrpcClient.createGrpcClient()
+
+      expect(instance.blockchainUpdatesApiClient).toBeDefined()
+      expect(instance.blocksApiClient).toBeDefined()
+      expect(instance.assetsApiClient).toBeDefined()
     })
   })
 })

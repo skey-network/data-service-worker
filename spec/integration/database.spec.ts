@@ -1,6 +1,8 @@
 import '../setup'
 
-import { Database } from '../../src/Database'
+import * as Database from '../../src/Database'
+import { Factory } from '../factory'
+
 import { Device } from '../../models/Device'
 import { Supplier } from '../../models/Supplier'
 import { Key } from '../../models/Key'
@@ -10,75 +12,22 @@ const cases = [
   {
     toString: () => 'device',
     model: Device,
-    data: {
-      address: 'device_addr',
-      supplier: 'supplier_addr',
-      owner: 'owner_addr',
-      name: 'device name',
-      description: 'device_description',
-      lat: 50.2,
-      lng: -0.5,
-      alt: 60,
-      details: {
-        physicalAddress: {
-          addressLine1: 'test',
-          addressLine2: 'test',
-          city: 'test',
-          postcode: 'test',
-          state: 'test',
-          country: 'test',
-          number: 'test',
-          floor: 'test'
-        },
-        deviceType: 'other',
-        additionalDescription: 'test',
-        assetUrl: 'test',
-        url: 'test',
-        contactInfo: 'test',
-        deviceModel: 'test'
-      },
-      visible: false,
-      active: true,
-      connected: true,
-      custom: {
-        powerLevel: 10
-      }
-    }
+    data: Factory.createSingleDevice().props
   },
   {
     toString: () => 'supplier',
     model: Supplier,
-    data: {
-      address: 'sss',
-      name: 'supplier',
-      description: 'desc',
-      devices: ['dev1', 'dev2'],
-      whitelisted: false
-    }
+    data: Factory.createSingleSupplier().props
   },
   {
     toString: () => 'key',
     model: Key,
-    data: {
-      assetId: 'key',
-      name: 'awesome key',
-      device: 'some device',
-      owner: 'owner',
-      issuer: 'issuer',
-      validTo: 123123,
-      issueTimestamp: 123123
-    }
+    data: Factory.createSingleKey().props
   },
   {
     toString: () => 'event',
     model: Event,
-    data: {
-      txHash: 'hash',
-      sender: 'sender',
-      assetId: 'aaaaaa',
-      action: 'self destroy',
-      status: 'success'
-    }
+    data: Factory.createSingleEvent().props
   }
 ]
 

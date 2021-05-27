@@ -1,9 +1,9 @@
 import { config as configure } from 'dotenv'
 configure()
 
-import { Blockchain } from './Blockchain'
-import { Database } from './Database'
-import { UpdateDeviceHandler } from './TxHandlers/UpdateDeviceHandler'
+import * as Blockchain from './Blockchain'
+import * as Database from './Database'
+import { UpdateDeviceHandler } from './TxHandlers/DeviceHandler'
 import { SubscribeEvent } from './Types'
 import { DappFatherHandler } from './TxHandlers/DappFatherHandler'
 import { UpdateSupplierHandler } from './TxHandlers/UpdateSupplierHandler'
