@@ -15,6 +15,9 @@ export default () => ({
     host: process.env.GRPC_HOST ?? 'localhost',
     updatesPort: Number(process.env.GRPC_UPDATES_PORT ?? '6881'),
     apiPort: Number(process.env.GRPC_API_PORT ?? '6877')
+  },
+  telegramBot: {
+    token: process.env.TELEGRAM_BOT_TOKEN
   }
 })
 

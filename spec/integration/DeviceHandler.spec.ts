@@ -72,7 +72,6 @@ describe('DeviceHandler', () => {
 
   beforeAll(async () => {
     await Database.connect()
-
     cancelSubscription = await helper.getListenerInstance(handleDeviceUpdates)
   })
 

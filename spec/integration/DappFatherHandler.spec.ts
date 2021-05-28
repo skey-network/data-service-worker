@@ -69,7 +69,7 @@ describe('DeviceHandler - integration', () => {
 
       await helper.lib.insertData(
         cases.map((c) => step.entries(c.address)),
-        helper.seeds.dappFather
+        helper.accounts.dappFather.seed
       )
 
       await helper.delay(2000)

@@ -39,7 +39,6 @@ const handleBalanceUpdates = async (update: Update) => {
     const assetId = bufforToAddress(balance.amount?.asset_id)
     const owner = bufforToAddress(balance.address)
     const asset = await Blockchain.fetchAsset(assetId)
-
     const error = isValidAsset(asset)
 
     if (error) {
@@ -61,19 +60,22 @@ const save = async (assetId: string, asset: AssetInfoResponse, owner?: string) =
     config().blockchain.chainId
   )
 
+  const burned = asset.total_volume === '0'
+
   const obj = {
     assetId,
     issuer,
     issueTimestamp,
     name,
     device,
-    validTo
+    validTo,
+    burned
   }
 
   const doc = await Key.findOne({ assetId })
 
   if (doc) {
-    await Key.updateOne({ assetId }, { owner })
+    await Key.updateOne({ assetId }, { owner, burned })
     logger.log(`Key ${assetId} updated`)
   } else {
     await Key.create({ ...obj, owner: obj.issuer })
@@ -87,7 +89,7 @@ const isValidAsset = (asset: AssetInfoResponse) => {
 
   if (asset.decimals !== 0) return 'invalid decimals'
   if (asset.reissuable) return 'invalid reissuable'
-  if (asset.total_volume !== '1') return 'invalid volume'
+  if (asset.total_volume !== '1' && asset.total_volume !== '0') return 'invalid volume'
 
   if (!asset.name) return 'invalid name'
   if (!asset.description) return 'invalid description'

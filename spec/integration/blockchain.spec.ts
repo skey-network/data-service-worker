@@ -16,7 +16,7 @@ describe('Blockchain', () => {
     let assetId = ''
 
     beforeAll(async () => {
-      assetId = await helper.lib.generateKey('aaa', 1000, helper.seeds.dappFather)
+      assetId = await helper.lib.generateKey('aaa', 1000, helper.accounts.dappFather.seed)
     })
 
     it('returns object', async () => {

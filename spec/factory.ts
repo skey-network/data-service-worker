@@ -100,7 +100,8 @@ export namespace Factory {
       name: faker.random.word(),
       device: helper.createAccount().address,
       validTo: Helpers.randTimestamp(),
-      issueTimestamp: Date.now()
+      issueTimestamp: Date.now(),
+      burned: Helpers.randBool()
     }
 
     const meta: Types.Meta = {
