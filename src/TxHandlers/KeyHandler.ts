@@ -3,9 +3,10 @@ import { Update } from '../UpdateParser'
 import { createLogger } from '../Logger'
 import { AssetInfoResponse } from '../Types'
 import * as Blockchain from '../Blockchain'
+import { publicKeyToAddress } from '../Common'
 import { Key } from '../../models/Key'
 import config from '../../config'
-import { bufforToAddress } from '../Common'
+import { bufferToString } from '../Common'
 
 const logger = createLogger('KeyHandler')
 
@@ -16,7 +17,7 @@ export const handleKeyUpdates = async (update: Update) => {
 
 const handleAssetUpdates = async (update: Update) => {
   for (const assetUpdate of update.assetUpdates) {
-    const assetId = bufforToAddress(assetUpdate.asset_id)
+    const assetId = bufferToString(assetUpdate.asset_id)
     const asset = await Blockchain.fetchAsset(assetId)
 
     const error = isValidAsset(asset)
@@ -36,8 +37,8 @@ const handleBalanceUpdates = async (update: Update) => {
   )
 
   for (const balance of filtered) {
-    const assetId = bufforToAddress(balance.amount?.asset_id)
-    const owner = bufforToAddress(balance.address)
+    const assetId = bufferToString(balance.amount?.asset_id)
+    const owner = bufferToString(balance.address)
     const asset = await Blockchain.fetchAsset(assetId)
     const error = isValidAsset(asset)
 
@@ -54,11 +55,7 @@ const save = async (assetId: string, asset: AssetInfoResponse, owner?: string) =
   const { device, validTo } = extractKeyData(asset.description ?? '')
   const issueTimestamp = Number(asset.issue_transaction?.transaction?.timestamp)
   const name = asset.name
-
-  const issuer = Crypto.address(
-    { publicKey: asset.issuer ?? [] },
-    config().blockchain.chainId
-  )
+  const issuer = publicKeyToAddress(asset.issuer)
 
   const burned = asset.total_volume === '0'
 

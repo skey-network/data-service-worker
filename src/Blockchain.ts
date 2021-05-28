@@ -2,6 +2,7 @@ import { grpcClient } from './GrpcClient'
 import * as Crypto from '@waves/ts-lib-crypto'
 import { AssetInfoResponse, SubscribeEvent, SubscribeRequest } from './Types'
 import { delay } from './Common'
+import { TransactionResponse } from '../proto/interfaces/waves/node/grpc/TransactionResponse'
 
 export const fetchAsset = (assetId: string) => {
   return new Promise<AssetInfoResponse>((resolve, reject) => {
@@ -13,6 +14,24 @@ export const fetchAsset = (assetId: string) => {
         resolve(res)
       }
     )
+  })
+}
+
+export const fetchTransactions = (ids: Uint8Array[]) => {
+  const txes: TransactionResponse[] = []
+
+  const processTransaction = (tx: TransactionResponse) => {
+    txes.push(tx)
+  }
+
+  return new Promise<TransactionResponse[]>((resolve, reject) => {
+    const call = grpcClient.transactionsApiClient.getTransactions({
+      transaction_ids: ids
+    })
+
+    call.on('data', processTransaction)
+    call.on('close', () => resolve(txes))
+    call.on('error', (err) => reject(err))
   })
 }
 

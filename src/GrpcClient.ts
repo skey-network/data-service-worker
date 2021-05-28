@@ -4,11 +4,13 @@ import config from '../config'
 import { readdirSync } from 'fs'
 import type { BlocksApiClient, BlockchainUpdatesApiClient } from './Types'
 import { AssetsApiClient } from '../proto/interfaces/waves/node/grpc/AssetsApi'
+import { TransactionsApiClient } from '../proto/interfaces/waves/node/grpc/TransactionsApi'
 
 export interface GrpcClient {
   blocksApiClient: BlocksApiClient
   assetsApiClient: AssetsApiClient
   blockchainUpdatesApiClient: BlockchainUpdatesApiClient
+  transactionsApiClient: TransactionsApiClient
 }
 
 export const protoLoaderOptions: protoLoader.Options = Object.freeze({
@@ -28,6 +30,7 @@ export const createGrpcClient = (): GrpcClient => {
   return {
     blocksApiClient: createApi(node.grpc.BlocksApi, apiPort),
     assetsApiClient: createApi(node.grpc.AssetsApi, apiPort),
+    transactionsApiClient: createApi(node.grpc.TransactionsApi, apiPort),
     blockchainUpdatesApiClient: createApi(events.grpc.BlockchainUpdatesApi, updatesPort)
   }
 }

@@ -61,6 +61,7 @@ describe('GrpcClient', () => {
       expect(instance.blockchainUpdatesApiClient).toBeDefined()
       expect(instance.blocksApiClient).toBeDefined()
       expect(instance.assetsApiClient).toBeDefined()
+      expect(instance.transactionsApiClient).toBeDefined()
     })
   })
 })

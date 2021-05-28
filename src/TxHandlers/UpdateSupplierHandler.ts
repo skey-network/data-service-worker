@@ -3,7 +3,7 @@ import { Entry } from '../Types'
 import { Supplier } from '../../models/Supplier'
 import { ACTIVE_KEYWORD, DEVICE_PREFIX, DEVICE_REGEX } from '../Constants'
 import { createLogger } from '../Logger'
-import { bufforToAddress } from '../Common'
+import { bufferToString } from '../Common'
 
 export interface SupplierPayload {
   name?: string
@@ -24,7 +24,7 @@ export const handleSupplierUpdates = async (update: Update) => {
 }
 
 const handleSingleUpdate = async (item: DataUpdate) => {
-  const address = bufforToAddress(item.address ?? [])
+  const address = bufferToString(item.address ?? [])
   const payload = parseEntries(item.entries)
 
   const exists = await Supplier.exists({ address })

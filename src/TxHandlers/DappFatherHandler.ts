@@ -4,7 +4,7 @@ import { Entry } from '../Types'
 import config from '../../config'
 import { ACTIVE_KEYWORD, SUPPLIER_PREFIX, SUPPLIER_REGEX } from '../Constants'
 import { Supplier } from '../../models/Supplier'
-import { bufforToAddress } from '../Common'
+import { bufferToString } from '../Common'
 
 const logger = createLogger('DappFatherHandler')
 
@@ -16,7 +16,7 @@ export const handleDappFatherUpdates = async (update: Update) => {
 
 const handleSingleUpdate = async (item: DataUpdate) => {
   const { dappFatherAddress } = config().blockchain
-  const address = bufforToAddress(item.address)
+  const address = bufferToString(item.address)
 
   if (address !== dappFatherAddress) {
     return logger.debug('address is not dapp father')

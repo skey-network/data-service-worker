@@ -6,7 +6,7 @@ import {
   BalanceUpdate
 } from './Types'
 import { createLogger } from './Logger'
-import { bufforToAddress } from './Common'
+import { bufferToString } from './Common'
 
 const logger = createLogger('UpdateParser')
 
@@ -19,6 +19,7 @@ export interface Update {
   dataUpdates: DataUpdate[]
   assetUpdates: AssetStateUpdate[]
   balanceUpdates: BalanceUpdate[]
+  ids: Uint8Array[]
 }
 
 export const parseUpdate = (chunk: SubscribeEvent): Update => {
@@ -27,8 +28,13 @@ export const parseUpdate = (chunk: SubscribeEvent): Update => {
   return {
     dataUpdates: getDataUpdates(stateUpdates),
     assetUpdates: getAssetUpdates(stateUpdates),
-    balanceUpdates: getBalanceUpdates(stateUpdates)
+    balanceUpdates: getBalanceUpdates(stateUpdates),
+    ids: getIds(chunk)
   }
+}
+
+export const getIds = (chunk: SubscribeEvent): Uint8Array[] => {
+  return (chunk.update?.append?.transaction_ids ?? []) as Uint8Array[]
 }
 
 export const getStateUpdates = (chunk: SubscribeEvent) => {
@@ -80,7 +86,7 @@ export const getDataUpdates = (stateUpdates: StateUpdate[]) => {
     for (const entry of entries) {
       if (!entry.address || !entry.data_entry) continue
 
-      const address = bufforToAddress(entry.address)
+      const address = bufferToString(entry.address)
       const currentEntries = map.get(address) ?? []
       map.set(address, [...currentEntries, entry.data_entry])
     }

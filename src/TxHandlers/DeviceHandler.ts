@@ -2,7 +2,7 @@ import { DataUpdate, Update } from '../UpdateParser'
 import { Entry } from '../Types'
 import { createLogger } from '../Logger'
 import { Device } from '../../models/Device'
-import { bufforToAddress } from '../Common'
+import { bufferToString } from '../Common'
 import { ACTIVE_KEYWORD, KEY_REGEX } from '../Constants'
 
 interface KeyItem {
@@ -26,7 +26,7 @@ export const handleDeviceUpdates = async (update: Update) => {
 }
 
 const handleSingleUpdate = async (item: DataUpdate) => {
-  const address = bufforToAddress(item.address ?? [])
+  const address = bufferToString(item.address ?? [])
   const update = parseProps(item.entries)
   const keyList = parseKeyList(item.entries)
 
