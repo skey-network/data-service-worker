@@ -1,21 +1,13 @@
 import '../setup'
 
 import * as helper from '../helper'
-import { Blockchain } from '../../src/Blockchain'
-import { GrpcClient } from '../../src/GrpcClient'
+import * as Blockchain from '../../src/Blockchain'
 import { SubscribeEvent } from '../../src/Types'
 
 describe('Blockchain', () => {
-  let instance: Blockchain
-
-  beforeEach(() => {
-    instance = new Blockchain(new GrpcClient())
-  })
-
   describe('fetchHeight', () => {
     it('returns correct height', async () => {
-      const height = await instance.fetchHeight()
-
+      const height = await Blockchain.fetchHeight()
       expect(height).toBeGreaterThan(0)
     })
   })
@@ -28,22 +20,21 @@ describe('Blockchain', () => {
     })
 
     it('returns object', async () => {
-      const asset = await instance.fetchAsset(assetId)
-
+      const asset = await Blockchain.fetchAsset(assetId)
       expect(asset.issuer).toBeDefined()
     })
   })
 
   describe('subscribe', () => {
     it('promise is cancellable', async () => {
-      const promise = instance.subscribe(() => {}, 1)
+      const promise = Blockchain.subscribe(() => {}, 1)
       await promise.cancel()
     })
 
     it('receives updates', async () => {
       const chunks: SubscribeEvent[] = []
 
-      instance.subscribe(
+      Blockchain.subscribe(
         (chunk) => {
           chunks.push(chunk)
         },
@@ -60,7 +51,7 @@ describe('Blockchain', () => {
     it('calls callback function on update', async () => {
       const callback = jest.fn()
 
-      instance.subscribe(callback, 5, 7)
+      Blockchain.subscribe(callback, 5, 7)
 
       await helper.delay(1000)
 

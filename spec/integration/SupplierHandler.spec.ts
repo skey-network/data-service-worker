@@ -1,10 +1,9 @@
 import '../setup'
 
 import * as helper from '../helper'
-import { Database } from '../../src/Database'
+import * as Database from '../../src/Database'
 import { Supplier } from '../../models/Supplier'
-import { UpdateSupplierHandler } from '../../src/TxHandlers/UpdateSupplierHandler'
-import { SubscribeEvent } from '../../src/Types'
+import { handleSupplierUpdates } from '../../src/TxHandlers/UpdateSupplierHandler'
 
 const cases = helper
   .createMultipleAccounts(3)
@@ -84,9 +83,7 @@ describe('SupplierHandler - integration', () => {
   beforeAll(async () => {
     await Database.connect()
 
-    cancelSubscription = await helper.getListenerInstance((chunk: SubscribeEvent) =>
-      UpdateSupplierHandler.handle(chunk)
-    )
+    cancelSubscription = await helper.getListenerInstance(handleSupplierUpdates)
   })
 
   afterAll(async () => {

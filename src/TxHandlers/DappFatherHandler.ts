@@ -1,55 +1,52 @@
-import { AbstractHandler, IteratorItem } from './AbstractHandler'
-import { Logger } from '../Logger'
-import { Entry, SubscribeEvent } from '../Types'
+import { Update, DataUpdate } from '../UpdateParser'
+import { createLogger } from '../Logger'
+import { Entry } from '../Types'
 import config from '../../config'
 import { ACTIVE_KEYWORD, SUPPLIER_PREFIX, SUPPLIER_REGEX } from '../Constants'
 import { Supplier } from '../../models/Supplier'
+import { bufforToAddress } from '../Common'
 
-export class DappFatherHandler extends AbstractHandler {
-  static logger = new Logger(DappFatherHandler.name)
+const logger = createLogger('DappFatherHandler')
 
-  static async handle(chunk: SubscribeEvent) {
-    const items = this.dataEntriesIterator(chunk)
+export const handleDappFatherUpdates = async (update: Update) => {
+  for (const item of update.dataUpdates) {
+    await handleSingleUpdate(item)
+  }
+}
 
-    for (const item of items) {
-      await this.handleSingleUpdate(item)
-    }
+const handleSingleUpdate = async (item: DataUpdate) => {
+  const { dappFatherAddress } = config().blockchain
+  const address = bufforToAddress(item.address)
+
+  if (address !== dappFatherAddress) {
+    return logger.debug('address is not dapp father')
   }
 
-  static async handleSingleUpdate(item: IteratorItem) {
-    const { dappFatherAddress } = config().blockchain
-    const address = this.bufforToAddress(item.address ?? [])
+  for (const entry of item.entries) {
+    await handleSingleEntry(entry)
+  }
+}
 
-    if (address !== dappFatherAddress) {
-      return this.logger.debug('address is not dapp father')
-    }
-
-    for (const entry of item.entries) {
-      await this.handleSingleEntry(entry)
-    }
+const handleSingleEntry = async (entry: Entry) => {
+  if (!SUPPLIER_REGEX.test(entry.key ?? '')) {
+    return logger.debug('invalid key')
   }
 
-  static async handleSingleEntry(entry: Entry) {
-    if (!SUPPLIER_REGEX.test(entry.key ?? '')) {
-      return this.logger.debug('invalid key')
-    }
+  const address = entry.key!.replace(SUPPLIER_PREFIX, '')
+  const whitelisted = entry.string_value === ACTIVE_KEYWORD
 
-    const address = entry.key!.replace(SUPPLIER_PREFIX, '')
-    const whitelisted = entry.string_value === ACTIVE_KEYWORD
+  const exists = await Supplier.exists({ address })
 
-    const exists = await Supplier.exists({ address })
+  const func = exists ? updateSupplier : createSupplier
+  return await func(address, whitelisted)
+}
 
-    const func = exists ? this.updateSupplier : this.createSupplier
-    return await func.bind(this)(address, whitelisted)
-  }
+const createSupplier = async (address: string, whitelisted: boolean) => {
+  await Supplier.create({ address, devices: [], whitelisted })
+  logger.log(`Supplier ${address} created`)
+}
 
-  static async createSupplier(address: string, whitelisted: boolean) {
-    await Supplier.create({ address, devices: [], whitelisted })
-    this.logger.log(`Supplier ${address} created`)
-  }
-
-  static async updateSupplier(address: string, whitelisted: boolean) {
-    await Supplier.updateOne({ address }, { whitelisted })
-    this.logger.log(`Supplier ${address} updated`)
-  }
+const updateSupplier = async (address: string, whitelisted: boolean) => {
+  await Supplier.updateOne({ address }, { whitelisted })
+  logger.log(`Supplier ${address} updated`)
 }

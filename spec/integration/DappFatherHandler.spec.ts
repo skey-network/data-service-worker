@@ -1,10 +1,9 @@
 import '../setup'
 
 import * as helper from '../helper'
-import { Database } from '../../src/Database'
-import { DappFatherHandler } from '../../src/TxHandlers/DappFatherHandler'
+import * as Database from '../../src/Database'
+import { handleDappFatherUpdates } from '../../src/TxHandlers/DappFatherHandler'
 import { Supplier } from '../../models/Supplier'
-import { SubscribeEvent } from '../../src/Types'
 
 const cases = helper
   .createMultipleAccounts(3)
@@ -54,9 +53,7 @@ describe('DeviceHandler - integration', () => {
   beforeAll(async () => {
     await Database.connect()
 
-    cancelSubscription = await helper.getListenerInstance((chunk: SubscribeEvent) =>
-      DappFatherHandler.handle(chunk)
-    )
+    cancelSubscription = await helper.getListenerInstance(handleDappFatherUpdates)
   })
 
   afterAll(async () => {

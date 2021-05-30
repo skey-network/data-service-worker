@@ -1,22 +1,21 @@
 import * as Crypto from '@waves/ts-lib-crypto'
-import {
-  getStateUpdates,
-  getAssetUpdates,
-  bufforToAddress,
-  getBalanceUpdates
-} from './AbstractHandler'
-import { Logger } from '../Logger'
-import { AssetInfoResponse, AssetStateUpdate, SubscribeEvent } from '../Types'
-import { Blockchain } from '../Blockchain'
+import { Update } from '../UpdateParser'
+import { createLogger } from '../Logger'
+import { AssetInfoResponse } from '../Types'
+import * as Blockchain from '../Blockchain'
 import { Key } from '../../models/Key'
 import config from '../../config'
+import { bufforToAddress } from '../Common'
 
-const logger = new Logger('KeyHandler')
+const logger = createLogger('KeyHandler')
 
-export const handleKeyUpdates = async (chunk: SubscribeEvent) => {
-  const assetUpdates = getAssetUpdates(getStateUpdates(chunk))
+export const handleKeyUpdates = async (update: Update) => {
+  await handleAssetUpdates(update)
+  await handleBalanceUpdates(update)
+}
 
-  for (const assetUpdate of assetUpdates) {
+const handleAssetUpdates = async (update: Update) => {
+  for (const assetUpdate of update.assetUpdates) {
     const assetId = bufforToAddress(assetUpdate.asset_id)
     const asset = await Blockchain.fetchAsset(assetId)
 
@@ -31,10 +30,10 @@ export const handleKeyUpdates = async (chunk: SubscribeEvent) => {
   }
 }
 
-export const handleKeyTransferUpdates = async (chunk: SubscribeEvent) => {
-  const balanceUpdates = getBalanceUpdates(getStateUpdates(chunk))
-
-  const filtered = balanceUpdates.filter((balance) => balance.amount?.amount === '1')
+const handleBalanceUpdates = async (update: Update) => {
+  const filtered = update.balanceUpdates.filter(
+    (balance) => balance.amount?.amount === '1'
+  )
 
   for (const balance of filtered) {
     const assetId = bufforToAddress(balance.amount?.asset_id)
@@ -52,7 +51,7 @@ export const handleKeyTransferUpdates = async (chunk: SubscribeEvent) => {
   }
 }
 
-export const save = async (assetId: string, asset: AssetInfoResponse, owner?: string) => {
+const save = async (assetId: string, asset: AssetInfoResponse, owner?: string) => {
   const { device, validTo } = extractKeyData(asset.description ?? '')
   const issueTimestamp = Number(asset.issue_transaction?.transaction?.timestamp)
   const name = asset.name
@@ -82,7 +81,7 @@ export const save = async (assetId: string, asset: AssetInfoResponse, owner?: st
   }
 }
 
-export const isValidAsset = (asset: AssetInfoResponse) => {
+const isValidAsset = (asset: AssetInfoResponse) => {
   const MIN_ADDRESS_LENGTH = 35
   const MIN_DESCRIPTION_LENGTH = 37
 
@@ -104,7 +103,7 @@ export const isValidAsset = (asset: AssetInfoResponse) => {
   return null
 }
 
-export const extractKeyData = (description: string) => {
+const extractKeyData = (description: string) => {
   const [device, validTo] = description.split('_')
   return { device, validTo: Number(validTo) }
 }

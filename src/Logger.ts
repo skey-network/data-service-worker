@@ -1,39 +1,40 @@
 import chalk from 'chalk'
 
-export class Logger {
-  private logs = true
-  private module: string
+const ENABLE_LOGS = true
 
-  constructor(module?: string) {
-    this.module = module ?? 'Unknown'
-  }
+export const createLogger = (prefix = 'Unknown') => ({
+  log: (...args: any) => log(prefix, ...args),
+  warn: (...args: any) => warn(prefix, ...args),
+  error: (...args: any) => error(prefix, ...args),
+  debug: (...args: any) => debug(prefix, ...args)
+})
 
-  private write(prefix: string, ...args: any) {
-    if (!this.logs) return
-    if (process.env.MODE === 'test') return
+const write = (type: string, prefix: string, ...args: any) => {
+  if (!ENABLE_LOGS) return
+  if (process.env.MODE === 'test') return
 
-    const time = chalk.gray(new Date().toISOString())
-    // don't remove
-    console.log(prefix, time, `[${this.module}]`, ...args)
-  }
+  const time = chalk.gray(new Date().toISOString())
 
-  log(...args: any) {
-    const prefix = chalk.greenBright('LOG  ')
-    this.write(prefix, ...args)
-  }
+  // don't remove
+  console.log(type, time, `[${prefix}]`, ...args)
+}
 
-  warn(...args: any) {
-    const prefix = chalk.yellowBright('WARN ')
-    this.write(prefix, ...args)
-  }
+const log = (prefix: string, ...args: any) => {
+  const type = chalk.greenBright('LOG  ')
+  write(type, prefix, ...args)
+}
 
-  error(...args: any) {
-    const prefix = chalk.redBright('ERROR')
-    this.write(prefix, ...args)
-  }
+const warn = (prefix: string, ...args: any) => {
+  const type = chalk.yellowBright('WARN ')
+  write(type, prefix, ...args)
+}
 
-  debug(...args: any) {
-    const prefix = chalk.magenta('DEBUG')
-    this.write(prefix, ...args)
-  }
+const error = (prefix: string, ...args: any) => {
+  const type = chalk.redBright('ERROR')
+  write(type, prefix, ...args)
+}
+
+const debug = (prefix: string, ...args: any) => {
+  const type = chalk.magenta('DEBUG')
+  write(type, prefix, ...args)
 }
