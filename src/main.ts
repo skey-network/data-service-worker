@@ -6,7 +6,7 @@ import * as Database from './Database'
 import { UpdateDeviceHandler } from './TxHandlers/DeviceHandler'
 import { SubscribeEvent } from './Types'
 import { DappFatherHandler } from './TxHandlers/DappFatherHandler'
-import { UpdateSupplierHandler } from './TxHandlers/UpdateSupplierHandler'
+import { UpdateSupplierHandler } from './TxHandlers/SupplierHandler'
 import { handleKeyTransferUpdates, handleKeyUpdates } from './TxHandlers/KeyHandler'
 
 const handle = async (chunk: SubscribeEvent) => {

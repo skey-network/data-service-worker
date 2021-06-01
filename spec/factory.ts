@@ -6,6 +6,7 @@ import { DeviceSchema, deviceTypes } from '../models/Device'
 import { SupplierSchema } from '../models/Supplier'
 import { KeySchema } from '../models/Key'
 import { EventSchema } from '../models/Event'
+import { OrganisationSchema } from '../models/Organisation'
 
 export namespace Types {
   type OmitProps<T> = Omit<T, '_id' | '__v' | 'createdAt' | 'updatedAt'>
@@ -15,6 +16,7 @@ export namespace Types {
   export type SupplierProps = Props<typeof SupplierSchema>
   export type KeyProps = Props<typeof KeySchema>
   export type EventProps = Props<typeof EventSchema>
+  export type OrganisationProps = Props<typeof OrganisationSchema>
 
   export type Meta = {
     toString: () => string
@@ -80,6 +82,7 @@ export namespace Factory {
     const props: Types.EventProps = {
       txHash: Helpers.randTxHash(),
       sender: helper.createAccount().address,
+      device: helper.createAccount().address,
       assetId: Helpers.randTxHash(),
       action: faker.random.word(),
       status: faker.random.word()
@@ -109,6 +112,15 @@ export namespace Factory {
     }
 
     return { props, meta }
+  }
+
+  export const createSingleOrganisation = () => {
+    const acc = helper.createAccount()
+
+    const props: Types.OrganisationProps = {
+      address: acc.address,
+      
+    }
   }
 
   export const createSingleDevice = () => {

@@ -4,6 +4,7 @@ import * as helper from '../helper'
 import * as Database from '../../src/Database'
 import { handleDappFatherUpdates } from '../../src/TxHandlers/DappFatherHandler'
 import { Supplier } from '../../models/Supplier'
+import { Organisation } from '../../models/Organisation'
 
 const cases = helper
   .createMultipleAccounts(3)
@@ -16,6 +17,8 @@ const steps = [
     toString: () => 'whitelist suppliers',
     // Should transfer tokens before or not
     transfer: true,
+    // Which db model to use
+    model: Supplier,
     // WHEN entries stored in blockchain
     entries: (address: string) => ({
       key: `supplier_${address}`,
@@ -26,13 +29,13 @@ const steps = [
       address,
       name: undefined,
       description: undefined,
-      whitelisted: true,
-      devices: []
+      whitelisted: true
     })
   },
   {
     toString: () => 'blacklist suppliers',
     transfer: false,
+    model: Supplier,
     entries: (address: string) => ({
       key: `supplier_${address}`,
       value: 'inactive'
@@ -41,8 +44,37 @@ const steps = [
       address,
       name: undefined,
       description: undefined,
-      whitelisted: false,
-      devices: []
+      whitelisted: false
+    })
+  },
+  {
+    toString: () => 'whitelist organisations',
+    transfer: false,
+    model: Organisation,
+    entries: (address: string) => ({
+      key: `org_${address}`,
+      value: 'active'
+    }),
+    expected: (address: string) => ({
+      address,
+      name: undefined,
+      description: undefined,
+      whitelisted: true
+    })
+  },
+  {
+    toString: () => 'blacklist organisations',
+    transfer: false,
+    model: Organisation,
+    entries: (address: string) => ({
+      key: `org_${address}`,
+      value: 'inactive'
+    }),
+    expected: (address: string) => ({
+      address,
+      name: undefined,
+      description: undefined,
+      whitelisted: false
     })
   }
 ]
@@ -77,14 +109,13 @@ describe('DeviceHandler - integration', () => {
 
     test.each(cases)('%s', async (args) => {
       const expected = step.expected(args.address)
-      const doc = (await Supplier.findOne({ address: args.address }))!
+      const doc = (await step.model.findOne({ address: args.address }))!
 
       const picked = ((obj) => ({
         address: obj.address,
         name: obj.name,
         description: obj.description,
-        whitelisted: obj.whitelisted,
-        devices: Array.from(obj.devices)
+        whitelisted: obj.whitelisted
       }))(doc)
 
       expect(picked).toEqual(expected)

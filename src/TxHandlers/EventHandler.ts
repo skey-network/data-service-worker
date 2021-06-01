@@ -3,6 +3,12 @@ import * as Blockchain from '../Blockchain'
 import * as Common from '../Common'
 import { TransactionResponse } from '../../proto/interfaces/waves/node/grpc/TransactionResponse'
 import { createLogger } from '../Logger'
+import { Event } from '../../models/Event'
+
+const INT = 4
+const BYTE = 1
+
+type PreIncrement = (val: number) => number
 
 const logger = createLogger('EventHandler')
 
@@ -29,44 +35,56 @@ const handleEvent = async (itx: TransactionResponse) => {
   )
   const device = Common.bufferToString(invoke.d_app?.public_key_hash)
 
+  const binData = parseBinaryData(invoke.function_call as Buffer)
+  if (!binData) return
+  
   const obj = {
     txHash,
     sender,
-    device
+    device,
+    assetId: binData.assetId,
+    action: binData.action,
+    status: itx.application_status
   }
+  
+  await Event.create(obj)
+  logger.log(`Event ${obj.txHash} `)
+}
 
-  console.log(parseBinaryData(invoke.function_call as Buffer))
+const startPreIncrement = (initial: number) => {
+  let current = initial
+
+  return (value: number) => {
+    const result = current
+    current += value
+    return result
+  }
 }
 
 const parseBinaryData = (input: Buffer) => {
-  const INT = 4
-  let index = 3
+  const inc = startPreIncrement(3)
 
-  const fNameLength = bytesToInteger(input, (index += INT) - INT)
-  const fName = bytesToString(input, (index += fNameLength) - fNameLength, fNameLength)
-  const argc = bytesToInteger(input, (index += INT) - INT)
+  const fNameLength = bytesToInteger(input, inc(INT))
+  const fName = bytesToString(input, inc(fNameLength), fNameLength)
+  const argc = bytesToInteger(input, inc(INT))
 
   if (argc !== 2) return null
 
-  const assetId = bytesToStringArgument(input, index)
+  const assetId = bytesToStringArgument(input, inc)
   if (!assetId) return null
 
-  index += assetId.length + 5
-
-  const action = bytesToStringArgument(input, index)
+  const action = bytesToStringArgument(input, inc)
   if (!action) return null
 
   return { fName, assetId, action }
 }
 
-const bytesToStringArgument = (input: Buffer, index: number) => {
-  const type = input.readUInt8((index += 1) - 1)
-  console.log('type', type)
+const bytesToStringArgument = (input: Buffer, inc: PreIncrement) => {
+  const type = input.readUInt8(inc(BYTE))
   if (type !== 2) return null
 
-  const length = bytesToInteger(input, (index += 4) - 4)
-
-  return bytesToString(input, (index += length) - length, length)
+  const length = bytesToInteger(input, inc(INT))
+  return bytesToString(input, inc(length), length)
 }
 
 const bytesToInteger = (input: Buffer, start: number) => {

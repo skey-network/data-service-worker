@@ -89,7 +89,7 @@ describe('EventHandler', () => {
       expect(doc.sender).toBe(ctx.user.address)
       expect(doc.assetId).toBe(ctx.key)
       expect(doc.action).toBe('open')
-      expect(doc.status).toBe('succeeded')
+      expect(doc.status).toBe('SUCCEEDED')
     })
   })
 })

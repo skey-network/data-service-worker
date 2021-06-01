@@ -3,7 +3,7 @@ import '../setup'
 import * as helper from '../helper'
 import * as Database from '../../src/Database'
 import { Supplier } from '../../models/Supplier'
-import { handleSupplierUpdates } from '../../src/TxHandlers/UpdateSupplierHandler'
+import { handleSupplierUpdates } from '../../src/TxHandlers/SupplierHandler'
 
 const cases = helper
   .createMultipleAccounts(3)
