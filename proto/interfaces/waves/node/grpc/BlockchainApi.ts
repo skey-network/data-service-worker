@@ -47,7 +47,7 @@ export interface BlockchainApiHandlers extends grpc.UntypedServiceImplementation
   
 }
 
-export interface BlockchainApiDefinition {
+export interface BlockchainApiDefinition extends grpc.ServiceDefinition {
   GetActivationStatus: MethodDefinition<_waves_node_grpc_ActivationStatusRequest, _waves_node_grpc_ActivationStatusResponse, _waves_node_grpc_ActivationStatusRequest__Output, _waves_node_grpc_ActivationStatusResponse__Output>
   GetBaseTarget: MethodDefinition<_google_protobuf_Empty, _waves_node_grpc_BaseTargetResponse, _google_protobuf_Empty__Output, _waves_node_grpc_BaseTargetResponse__Output>
   GetCumulativeScore: MethodDefinition<_google_protobuf_Empty, _waves_node_grpc_ScoreResponse, _google_protobuf_Empty__Output, _waves_node_grpc_ScoreResponse__Output>

@@ -31,7 +31,7 @@ export interface AssetsApiHandlers extends grpc.UntypedServiceImplementation {
   
 }
 
-export interface AssetsApiDefinition {
+export interface AssetsApiDefinition extends grpc.ServiceDefinition {
   GetInfo: MethodDefinition<_waves_node_grpc_AssetRequest, _waves_node_grpc_AssetInfoResponse, _waves_node_grpc_AssetRequest__Output, _waves_node_grpc_AssetInfoResponse__Output>
   GetNFTList: MethodDefinition<_waves_node_grpc_NFTRequest, _waves_node_grpc_NFTResponse, _waves_node_grpc_NFTRequest__Output, _waves_node_grpc_NFTResponse__Output>
 }

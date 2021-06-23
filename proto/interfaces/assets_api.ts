@@ -3,7 +3,6 @@ import type { ServiceDefinition, EnumTypeDefinition, MessageTypeDefinition } fro
 
 import type { AccountsApiClient as _waves_node_grpc_AccountsApiClient, AccountsApiDefinition as _waves_node_grpc_AccountsApiDefinition } from './waves/node/grpc/AccountsApi';
 import type { AssetsApiClient as _waves_node_grpc_AssetsApiClient, AssetsApiDefinition as _waves_node_grpc_AssetsApiDefinition } from './waves/node/grpc/AssetsApi';
-import type { TransactionsApiClient as _waves_node_grpc_TransactionsApiClient, TransactionsApiDefinition as _waves_node_grpc_TransactionsApiDefinition } from './waves/node/grpc/TransactionsApi';
 
 type SubtypeConstructor<Constructor extends new (...args: any) => any, Subtype> = {
   new(...args: ConstructorParameters<Constructor>): Subtype;
@@ -31,7 +30,6 @@ export interface ProtoGrpcType {
     DataTransactionData: MessageTypeDefinition
     ExchangeTransactionData: MessageTypeDefinition
     GenesisTransactionData: MessageTypeDefinition
-    InvokeScriptResult: MessageTypeDefinition
     InvokeScriptTransactionData: MessageTypeDefinition
     IssueTransactionData: MessageTypeDefinition
     LeaseCancelTransactionData: MessageTypeDefinition
@@ -52,25 +50,17 @@ export interface ProtoGrpcType {
       grpc: {
         AccountRequest: MessageTypeDefinition
         AccountsApi: SubtypeConstructor<typeof grpc.Client, _waves_node_grpc_AccountsApiClient> & { service: _waves_node_grpc_AccountsApiDefinition }
-        ApplicationStatus: EnumTypeDefinition
         AssetInfoResponse: MessageTypeDefinition
         AssetRequest: MessageTypeDefinition
         AssetsApi: SubtypeConstructor<typeof grpc.Client, _waves_node_grpc_AssetsApiClient> & { service: _waves_node_grpc_AssetsApiDefinition }
         BalanceResponse: MessageTypeDefinition
         BalancesRequest: MessageTypeDefinition
-        CalculateFeeResponse: MessageTypeDefinition
         DataEntryResponse: MessageTypeDefinition
         DataRequest: MessageTypeDefinition
-        InvokeScriptResultResponse: MessageTypeDefinition
+        LeaseResponse: MessageTypeDefinition
         NFTRequest: MessageTypeDefinition
         NFTResponse: MessageTypeDefinition
         ScriptData: MessageTypeDefinition
-        SignRequest: MessageTypeDefinition
-        TransactionResponse: MessageTypeDefinition
-        TransactionStatus: MessageTypeDefinition
-        TransactionsApi: SubtypeConstructor<typeof grpc.Client, _waves_node_grpc_TransactionsApiClient> & { service: _waves_node_grpc_TransactionsApiDefinition }
-        TransactionsByIdRequest: MessageTypeDefinition
-        TransactionsRequest: MessageTypeDefinition
       }
     }
   }

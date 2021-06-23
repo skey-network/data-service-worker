@@ -16,6 +16,7 @@ export interface ProtoGrpcType {
     DataTransactionData: MessageTypeDefinition
     ExchangeTransactionData: MessageTypeDefinition
     GenesisTransactionData: MessageTypeDefinition
+    InvokeScriptResult: MessageTypeDefinition
     InvokeScriptTransactionData: MessageTypeDefinition
     IssueTransactionData: MessageTypeDefinition
     LeaseCancelTransactionData: MessageTypeDefinition
@@ -37,6 +38,7 @@ export interface ProtoGrpcType {
     events: {
       BlockchainUpdated: MessageTypeDefinition
       StateUpdate: MessageTypeDefinition
+      TransactionMetadata: MessageTypeDefinition
     }
   }
 }

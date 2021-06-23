@@ -43,7 +43,7 @@ export interface BlocksApiHandlers extends grpc.UntypedServiceImplementation {
   
 }
 
-export interface BlocksApiDefinition {
+export interface BlocksApiDefinition extends grpc.ServiceDefinition {
   GetBlock: MethodDefinition<_waves_node_grpc_BlockRequest, _waves_node_grpc_BlockWithHeight, _waves_node_grpc_BlockRequest__Output, _waves_node_grpc_BlockWithHeight__Output>
   GetBlockRange: MethodDefinition<_waves_node_grpc_BlockRangeRequest, _waves_node_grpc_BlockWithHeight, _waves_node_grpc_BlockRangeRequest__Output, _waves_node_grpc_BlockWithHeight__Output>
   GetCurrentHeight: MethodDefinition<_google_protobuf_Empty, _google_protobuf_UInt32Value, _google_protobuf_Empty__Output, _google_protobuf_UInt32Value__Output>

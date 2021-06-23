@@ -17,7 +17,7 @@ export const handleKeyUpdates = async (update: Update) => {
 
 const handleAssetUpdates = async (update: Update) => {
   for (const assetUpdate of update.assetUpdates) {
-    const assetId = bufferToString(assetUpdate.asset_id)
+    const assetId = bufferToString(assetUpdate.after?.asset_id)
     const asset = await Blockchain.fetchAsset(assetId)
 
     const error = isValidAsset(asset)
@@ -33,11 +33,11 @@ const handleAssetUpdates = async (update: Update) => {
 
 const handleBalanceUpdates = async (update: Update) => {
   const filtered = update.balanceUpdates.filter(
-    (balance) => balance.amount?.amount === '1'
+    (balance) => balance.amount_after?.amount === '1'
   )
 
   for (const balance of filtered) {
-    const assetId = bufferToString(balance.amount?.asset_id)
+    const assetId = bufferToString(balance.amount_after?.asset_id)
     const owner = bufferToString(balance.address)
     const asset = await Blockchain.fetchAsset(assetId)
     const error = isValidAsset(asset)

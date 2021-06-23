@@ -8,15 +8,15 @@ import type { BalancesRequest as _waves_node_grpc_BalancesRequest, BalancesReque
 import type { BytesValue as _google_protobuf_BytesValue, BytesValue__Output as _google_protobuf_BytesValue__Output } from '../../../google/protobuf/BytesValue';
 import type { DataEntryResponse as _waves_node_grpc_DataEntryResponse, DataEntryResponse__Output as _waves_node_grpc_DataEntryResponse__Output } from '../../../waves/node/grpc/DataEntryResponse';
 import type { DataRequest as _waves_node_grpc_DataRequest, DataRequest__Output as _waves_node_grpc_DataRequest__Output } from '../../../waves/node/grpc/DataRequest';
+import type { LeaseResponse as _waves_node_grpc_LeaseResponse, LeaseResponse__Output as _waves_node_grpc_LeaseResponse__Output } from '../../../waves/node/grpc/LeaseResponse';
 import type { ScriptData as _waves_node_grpc_ScriptData, ScriptData__Output as _waves_node_grpc_ScriptData__Output } from '../../../waves/node/grpc/ScriptData';
 import type { StringValue as _google_protobuf_StringValue, StringValue__Output as _google_protobuf_StringValue__Output } from '../../../google/protobuf/StringValue';
-import type { TransactionResponse as _waves_node_grpc_TransactionResponse, TransactionResponse__Output as _waves_node_grpc_TransactionResponse__Output } from '../../../waves/node/grpc/TransactionResponse';
 
 export interface AccountsApiClient extends grpc.Client {
-  GetActiveLeases(argument: _waves_node_grpc_AccountRequest, metadata: grpc.Metadata, options?: grpc.CallOptions): grpc.ClientReadableStream<_waves_node_grpc_TransactionResponse__Output>;
-  GetActiveLeases(argument: _waves_node_grpc_AccountRequest, options?: grpc.CallOptions): grpc.ClientReadableStream<_waves_node_grpc_TransactionResponse__Output>;
-  getActiveLeases(argument: _waves_node_grpc_AccountRequest, metadata: grpc.Metadata, options?: grpc.CallOptions): grpc.ClientReadableStream<_waves_node_grpc_TransactionResponse__Output>;
-  getActiveLeases(argument: _waves_node_grpc_AccountRequest, options?: grpc.CallOptions): grpc.ClientReadableStream<_waves_node_grpc_TransactionResponse__Output>;
+  GetActiveLeases(argument: _waves_node_grpc_AccountRequest, metadata: grpc.Metadata, options?: grpc.CallOptions): grpc.ClientReadableStream<_waves_node_grpc_LeaseResponse__Output>;
+  GetActiveLeases(argument: _waves_node_grpc_AccountRequest, options?: grpc.CallOptions): grpc.ClientReadableStream<_waves_node_grpc_LeaseResponse__Output>;
+  getActiveLeases(argument: _waves_node_grpc_AccountRequest, metadata: grpc.Metadata, options?: grpc.CallOptions): grpc.ClientReadableStream<_waves_node_grpc_LeaseResponse__Output>;
+  getActiveLeases(argument: _waves_node_grpc_AccountRequest, options?: grpc.CallOptions): grpc.ClientReadableStream<_waves_node_grpc_LeaseResponse__Output>;
   
   GetBalances(argument: _waves_node_grpc_BalancesRequest, metadata: grpc.Metadata, options?: grpc.CallOptions): grpc.ClientReadableStream<_waves_node_grpc_BalanceResponse__Output>;
   GetBalances(argument: _waves_node_grpc_BalancesRequest, options?: grpc.CallOptions): grpc.ClientReadableStream<_waves_node_grpc_BalanceResponse__Output>;
@@ -49,7 +49,7 @@ export interface AccountsApiClient extends grpc.Client {
 }
 
 export interface AccountsApiHandlers extends grpc.UntypedServiceImplementation {
-  GetActiveLeases: grpc.handleServerStreamingCall<_waves_node_grpc_AccountRequest__Output, _waves_node_grpc_TransactionResponse>;
+  GetActiveLeases: grpc.handleServerStreamingCall<_waves_node_grpc_AccountRequest__Output, _waves_node_grpc_LeaseResponse>;
   
   GetBalances: grpc.handleServerStreamingCall<_waves_node_grpc_BalancesRequest__Output, _waves_node_grpc_BalanceResponse>;
   
@@ -61,8 +61,8 @@ export interface AccountsApiHandlers extends grpc.UntypedServiceImplementation {
   
 }
 
-export interface AccountsApiDefinition {
-  GetActiveLeases: MethodDefinition<_waves_node_grpc_AccountRequest, _waves_node_grpc_TransactionResponse, _waves_node_grpc_AccountRequest__Output, _waves_node_grpc_TransactionResponse__Output>
+export interface AccountsApiDefinition extends grpc.ServiceDefinition {
+  GetActiveLeases: MethodDefinition<_waves_node_grpc_AccountRequest, _waves_node_grpc_LeaseResponse, _waves_node_grpc_AccountRequest__Output, _waves_node_grpc_LeaseResponse__Output>
   GetBalances: MethodDefinition<_waves_node_grpc_BalancesRequest, _waves_node_grpc_BalanceResponse, _waves_node_grpc_BalancesRequest__Output, _waves_node_grpc_BalanceResponse__Output>
   GetDataEntries: MethodDefinition<_waves_node_grpc_DataRequest, _waves_node_grpc_DataEntryResponse, _waves_node_grpc_DataRequest__Output, _waves_node_grpc_DataEntryResponse__Output>
   GetScript: MethodDefinition<_waves_node_grpc_AccountRequest, _waves_node_grpc_ScriptData, _waves_node_grpc_AccountRequest__Output, _waves_node_grpc_ScriptData__Output>

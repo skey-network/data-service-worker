@@ -66,7 +66,7 @@ export interface TransactionsApiHandlers extends grpc.UntypedServiceImplementati
   
 }
 
-export interface TransactionsApiDefinition {
+export interface TransactionsApiDefinition extends grpc.ServiceDefinition {
   Broadcast: MethodDefinition<_waves_SignedTransaction, _waves_SignedTransaction, _waves_SignedTransaction__Output, _waves_SignedTransaction__Output>
   GetStateChanges: MethodDefinition<_waves_node_grpc_TransactionsRequest, _waves_node_grpc_InvokeScriptResultResponse, _waves_node_grpc_TransactionsRequest__Output, _waves_node_grpc_InvokeScriptResultResponse__Output>
   GetStatuses: MethodDefinition<_waves_node_grpc_TransactionsByIdRequest, _waves_node_grpc_TransactionStatus, _waves_node_grpc_TransactionsByIdRequest__Output, _waves_node_grpc_TransactionStatus__Output>
