@@ -1,0 +1,7 @@
+.git
+
+.env
+.env.example
+
+coverage
+node_modules
