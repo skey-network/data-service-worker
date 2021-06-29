@@ -6,7 +6,7 @@ COPY package.json .
 
 RUN apk add git
 
-RUN npm install --verbose
+RUN npm install
 
 ADD . .
 
