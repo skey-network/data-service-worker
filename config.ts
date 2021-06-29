@@ -16,8 +16,9 @@ export default () => ({
     updatesPort: Number(process.env.GRPC_UPDATES_PORT ?? '6881'),
     apiPort: Number(process.env.GRPC_API_PORT ?? '6877')
   },
-  telegramBot: {
-    token: process.env.TELEGRAM_BOT_TOKEN
+  telegram: {
+    token: process.env.TELEGRAM_TOKEN ?? 'none',
+    chatId: Number(process.env.TELEGRAM_CHAT_ID ?? '0')
   }
 })
 

@@ -3,6 +3,7 @@ configure()
 
 import * as Blockchain from './Blockchain'
 import * as Database from './Database'
+import * as Telegraf from './Telegraf'
 import { parseUpdate } from './UpdateParser'
 import type { SubscribeEvent } from './Types'
 
@@ -26,7 +27,7 @@ const handle = async (chunk: SubscribeEvent) => {
 
 const _ = (async () => {
   await Database.connect()
-  const height = await Blockchain.fetchHeight()
 
+  const height = await Blockchain.fetchHeight()
   Blockchain.subscribe(handle, height)
 })()
