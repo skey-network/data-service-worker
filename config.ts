@@ -16,6 +16,10 @@ export default () => ({
     updatesPort: Number(process.env.GRPC_UPDATES_PORT ?? '6881'),
     apiPort: Number(process.env.GRPC_API_PORT ?? '6877')
   },
+  redis: {
+    host: process.env.REDIS_HOST ?? 'localhost',
+    port: Number(process.env.REDIS_PORT ?? '6379')
+  },
   telegramBot: {
     token: process.env.TELEGRAM_BOT_TOKEN
   }

@@ -5,23 +5,11 @@ import * as Blockchain from './Blockchain'
 import * as Database from './Database'
 import { parseUpdate } from './UpdateParser'
 import type { SubscribeEvent } from './Types'
-
-import { handleDappFatherUpdates } from './TxHandlers/DappFatherHandler'
-import { handleDeviceUpdates } from './TxHandlers/DeviceHandler'
-import { handleEventUpdates } from './TxHandlers/EventHandler'
-import { handleKeyUpdates } from './TxHandlers/KeyHandler'
-import { handleOrganisationUpdates } from './TxHandlers/OrganisationHandler'
-import { handleSupplierUpdates } from './TxHandlers/SupplierHandler'
+import { queue } from './Queue'
 
 const handle = async (chunk: SubscribeEvent) => {
   const update = parseUpdate(chunk)
-
-  await handleDappFatherUpdates(update)
-  await handleDeviceUpdates(update)
-  await handleEventUpdates(update)
-  await handleKeyUpdates(update)
-  await handleOrganisationUpdates(update)
-  await handleSupplierUpdates(update)
+  await queue.add(update)
 }
 
 const _ = (async () => {
