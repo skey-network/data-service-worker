@@ -20,7 +20,7 @@ export interface Update {
   dataUpdates: DataUpdate[]
   assetUpdates: AssetStateUpdate[]
   balanceUpdates: BalanceUpdate[]
-  ids: Uint8Array[]
+  ids: Buffer[]
 }
 
 export const parseUpdate = (chunk: SubscribeEvent): Update | null => {
@@ -41,8 +41,8 @@ export const parseUpdate = (chunk: SubscribeEvent): Update | null => {
   }
 }
 
-export const getIds = (chunk: SubscribeEvent): Uint8Array[] => {
-  return (chunk.update?.append?.transaction_ids ?? []) as Uint8Array[]
+export const getIds = (chunk: SubscribeEvent) => {
+  return (chunk.update?.append?.transaction_ids ?? []) as Buffer[]
 }
 
 export const getStateUpdates = (chunk: SubscribeEvent) => {

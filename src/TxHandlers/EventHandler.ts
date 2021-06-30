@@ -13,7 +13,8 @@ type PreIncrement = (val: number) => number
 const logger = createLogger('EventHandler')
 
 export const handleEventUpdates = async (update: Update) => {
-  const txes = await Blockchain.fetchTransactions(update.ids)
+  const ids = update.ids.map(Common.normalizeBinaryInput)
+  const txes = await Blockchain.fetchTransactions(ids)
 
   const itxes = txes.filter((tx) => {
     const txType = tx.transaction?.transaction?.data
@@ -37,7 +38,7 @@ const handleEvent = async (itx: TransactionResponse) => {
 
   const binData = parseBinaryData(invoke.function_call as Buffer)
   if (!binData) return
-  
+
   const obj = {
     txHash,
     sender,
@@ -46,9 +47,12 @@ const handleEvent = async (itx: TransactionResponse) => {
     action: binData.action,
     status: itx.application_status
   }
-  
+
+  const exists = await Event.exists({ txHash })
+  if (exists) return
+
   await Event.create(obj)
-  logger.log(`Event ${obj.txHash} `)
+  logger.log(`Event ${obj.txHash} created`)
 }
 
 const startPreIncrement = (initial: number) => {
@@ -66,8 +70,8 @@ const parseBinaryData = (input: Buffer) => {
 
   const fNameLength = bytesToInteger(input, inc(INT))
   const fName = bytesToString(input, inc(fNameLength), fNameLength)
-  const argc = bytesToInteger(input, inc(INT))
 
+  const argc = bytesToInteger(input, inc(INT))
   if (argc !== 2) return null
 
   const assetId = bytesToStringArgument(input, inc)

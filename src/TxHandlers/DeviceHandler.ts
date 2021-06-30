@@ -2,7 +2,6 @@ import { DataUpdate, Update } from '../UpdateParser'
 import { Entry } from '../Types'
 import { createLogger } from '../Logger'
 import { Device } from '../../models/Device'
-import { bufferToString } from '../Common'
 import { ACTIVE_KEYWORD, KEY_REGEX } from '../Constants'
 
 interface KeyItem {
@@ -26,24 +25,19 @@ export const handleDeviceUpdates = async (update: Update) => {
 }
 
 const handleSingleUpdate = async (item: DataUpdate) => {
-  const address = bufferToString(item.address ?? [])
   const update = parseProps(item.entries)
   const keyList = parseKeyList(item.entries)
 
-  if (!update || !keyList.length) return
-  // logger.debug('no updates')
+  if (!update && !keyList.length) return
 
-  const device = await Device.exists({ address })
+  const device = await Device.exists({ address: item.address })
   const func = device ? updateDevice : createDevice
 
-  await func(address, update, keyList)
+  await func(item.address, update, keyList)
 }
 
 const createDevice = async (address: string, update: any, keyList: KeyItem[]) => {
-  if (update.type !== 'device') {
-    return
-    // return logger.debug('invalid type')
-  }
+  if (update?.type !== 'device') return
 
   const list = keyList.filter((key) => key.whitelisted).map((key) => key.id)
 
@@ -100,10 +94,7 @@ const parseProps = (entries: Entry[]): any | null => {
       if (keysMap.json.includes(key)) {
         const obj = tryParse(string_value ?? '')
 
-        if (!obj) {
-          return
-          // return logger.debug('invalid json')
-        }
+        if (!obj) return logger.error('invalid json')
 
         return { [key]: obj }
       }

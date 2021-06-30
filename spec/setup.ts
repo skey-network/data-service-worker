@@ -1,4 +1,4 @@
 import { config as configure } from 'dotenv'
 configure()
 
-process.env.MODE = 'test'
+process.env.APP_LOGS = 'false'

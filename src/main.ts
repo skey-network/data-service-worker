@@ -24,9 +24,13 @@ const handle = async (chunk: SubscribeEvent) => {
 }
 
 const _ = (async () => {
+  // TODO Remove those later
   await Database.connect()
+  await Database.dropAllCollections()
   await queue.empty()
+  await queue.clean(0, 'completed')
+  await queue.clean(0, 'failed')
 
   // const height = await Blockchain.fetchHeight()
-  Blockchain.subscribe(handle, 1)
+  Blockchain.subscribe(handle, 98032)
 })()

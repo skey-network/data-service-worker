@@ -8,6 +8,10 @@ import { bufferToString } from '../Common'
 
 const logger = createLogger('KeyHandler')
 
+const rollbackWarning = (height: number) => {
+  logger.warn(`Cannot fetch asset at height ${height}. There might have been a rollback.`)
+}
+
 export const handleKeyUpdates = async (update: Update) => {
   await handleAssetUpdates(update)
   await handleBalanceUpdates(update)
@@ -15,14 +19,10 @@ export const handleKeyUpdates = async (update: Update) => {
 
 const handleAssetUpdates = async (update: Update) => {
   for (const assetUpdate of update.assetUpdates) {
-    const assetId = bufferToString((assetUpdate as any).after?.asset_id?.data)
-    if (!assetId) return
+    const assetId = bufferToString(assetUpdate.after?.asset_id)
 
     const asset = await Blockchain.fetchAsset(assetId)
-
-    if (!asset) {
-      return logger.error('cannot fetch asset')
-    }
+    if (!asset) return rollbackWarning(update.height)
 
     const validationError = isValidAsset(asset)
     if (validationError) continue
@@ -37,24 +37,14 @@ const handleBalanceUpdates = async (update: Update) => {
   )
 
   for (const balance of filtered) {
-    const assetId = bufferToString((balance as any).amount_after?.asset_id?.data)
-
+    const assetId = bufferToString(balance.amount_after?.asset_id)
     const owner = bufferToString(balance.address)
 
     const asset = await Blockchain.fetchAsset(assetId)
-
-    if (!asset) {
-      return logger.warn(
-        `Cannot fetch asset at height ${update.height}. There might have been a rollback.`
-      )
-    }
+    if (!asset) return rollbackWarning(update.height)
 
     const error = isValidAsset(asset)
-
-    if (error) {
-      // logger.debug(error)
-      continue
-    }
+    if (error) continue
 
     await save(assetId, asset, owner)
   }

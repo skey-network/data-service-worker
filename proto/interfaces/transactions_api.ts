@@ -1,5 +1,5 @@
 import type * as grpc from '@grpc/grpc-js';
-import type { ServiceDefinition, EnumTypeDefinition, MessageTypeDefinition } from '@grpc/proto-loader';
+import type { EnumTypeDefinition, MessageTypeDefinition } from '@grpc/proto-loader';
 
 import type { TransactionsApiClient as _waves_node_grpc_TransactionsApiClient, TransactionsApiDefinition as _waves_node_grpc_TransactionsApiDefinition } from './waves/node/grpc/TransactionsApi';
 
