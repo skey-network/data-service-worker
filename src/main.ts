@@ -3,31 +3,30 @@ configure()
 
 import * as Blockchain from './Blockchain'
 import * as Database from './Database'
-import * as Telegraf from './Telegraf'
 import { parseUpdate } from './UpdateParser'
 import type { SubscribeEvent } from './Types'
+import { queue } from './Queue'
+import { createLogger } from './Logger'
 
-import { handleDappFatherUpdates } from './TxHandlers/DappFatherHandler'
-import { handleDeviceUpdates } from './TxHandlers/DeviceHandler'
-import { handleEventUpdates } from './TxHandlers/EventHandler'
-import { handleKeyUpdates } from './TxHandlers/KeyHandler'
-import { handleOrganisationUpdates } from './TxHandlers/OrganisationHandler'
-import { handleSupplierUpdates } from './TxHandlers/SupplierHandler'
+const logger = createLogger('main')
+
+const hasTransactions = (chunk: SubscribeEvent) =>
+  (chunk.update?.append?.transaction_ids ?? []).length > 0
 
 const handle = async (chunk: SubscribeEvent) => {
-  const update = parseUpdate(chunk)
+  if (!hasTransactions(chunk)) return
 
-  await handleDappFatherUpdates(update)
-  await handleDeviceUpdates(update)
-  await handleEventUpdates(update)
-  await handleKeyUpdates(update)
-  await handleOrganisationUpdates(update)
-  await handleSupplierUpdates(update)
+  const update = parseUpdate(chunk)
+  if (!update) return
+
+  const job = await queue.add(update)
+  logger.debug('Processing block update', update.height, 'with job id', Number(job.id))
 }
 
 const _ = (async () => {
   await Database.connect()
+  await queue.empty()
 
-  const height = await Blockchain.fetchHeight()
-  Blockchain.subscribe(handle, height)
+  // const height = await Blockchain.fetchHeight()
+  Blockchain.subscribe(handle, 1)
 })()

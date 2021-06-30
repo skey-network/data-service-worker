@@ -40,7 +40,8 @@ const parseEntries = (entries: Entry[]): OrganisationPayload => {
 
 const createOrganisation = async (address: string, payload: OrganisationPayload) => {
   if (payload.type !== 'organisation') {
-    return logger.debug('invalid type')
+    // return logger.debug('invalid type')
+    return
   }
 
   const { name, description } = payload

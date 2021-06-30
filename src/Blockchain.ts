@@ -3,13 +3,16 @@ import * as Crypto from '@waves/ts-lib-crypto'
 import { AssetInfoResponse, SubscribeEvent, SubscribeRequest } from './Types'
 import { delay } from './Common'
 import { TransactionResponse } from '../proto/interfaces/waves/node/grpc/TransactionResponse'
+import { createLogger } from './Logger'
+
+const logger = createLogger('Blockchain')
 
 export const fetchAsset = (assetId: string) => {
-  return new Promise<AssetInfoResponse>((resolve, reject) => {
+  return new Promise<AssetInfoResponse | null>((resolve) => {
     grpcClient.assetsApiClient.GetInfo(
       { asset_id: Crypto.base58Decode(assetId) },
       (err, res) => {
-        if (err || !res) return reject(err)
+        if (err || !res) return resolve(null)
 
         resolve(res)
       }
@@ -36,11 +39,14 @@ export const fetchTransactions = (ids: Uint8Array[]) => {
 }
 
 export const fetchHeight = () => {
-  return new Promise<number>((resolve, reject) => {
+  return new Promise<number | null>((resolve) => {
     grpcClient.blocksApiClient.GetCurrentHeight({}, (err, res) => {
-      if (err || !res) return reject(err)
+      if (err || !res) {
+        logger.error(err)
+        return resolve(null)
+      }
 
-      resolve(res!.value)
+      resolve(res.value)
     })
   })
 }

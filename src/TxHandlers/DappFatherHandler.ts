@@ -26,7 +26,8 @@ const handleSingleUpdate = async (item: DataUpdate) => {
   const address = bufferToString(item.address)
 
   if (address !== dappFatherAddress) {
-    return logger.debug('address is not dapp father')
+    return
+    // return logger.debug('address is not dapp father')
   }
 
   for (const entry of item.entries) {
@@ -37,7 +38,8 @@ const handleSingleUpdate = async (item: DataUpdate) => {
 
 const handleSupplierEntry = async (entry: Entry) => {
   if (!SUPPLIER_REGEX.test(entry.key ?? '')) {
-    return logger.debug('invalid key')
+    return
+    // return logger.debug('invalid key')
   }
 
   const address = entry.key!.replace(SUPPLIER_PREFIX, '')
@@ -51,7 +53,8 @@ const handleSupplierEntry = async (entry: Entry) => {
 
 const handleOrganisationEntry = async (entry: Entry) => {
   if (!ORGANISATION_REGEX.test(entry.key ?? '')) {
-    return logger.debug('invalid key')
+    return
+    // return logger.debug('invalid key')
   }
 
   const address = entry.key!.replace(ORGANISATION_PREFIX, '')

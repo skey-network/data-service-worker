@@ -1,22 +1,13 @@
 import chalk from 'chalk'
-
-const ENABLE_LOGS = true
-
-export const createLogger = (prefix = 'Unknown') => ({
-  log: (...args: any) => log(prefix, ...args),
-  warn: (...args: any) => warn(prefix, ...args),
-  error: (...args: any) => error(prefix, ...args),
-  debug: (...args: any) => debug(prefix, ...args)
-})
+import config from '../config'
 
 const write = (type: string, prefix: string, ...args: any) => {
-  if (!ENABLE_LOGS) return
-  if (process.env.MODE === 'test') return
+  if (!config().app.logs) return
 
   const time = chalk.gray(new Date().toISOString())
 
   // don't remove
-  console.log(type, time, `[${prefix}]`, ...args)
+  console.log(type, time, chalk.grey(`[${prefix}]`), ...args)
 }
 
 const log = (prefix: string, ...args: any) => {
@@ -38,3 +29,12 @@ const debug = (prefix: string, ...args: any) => {
   const type = chalk.magenta('DEBUG')
   write(type, prefix, ...args)
 }
+
+export const createLogger = (prefix = 'Unknown') => ({
+  log: log.bind(null, prefix),
+  warn: warn.bind(null, prefix),
+  error: error.bind(null, prefix),
+  debug: debug.bind(null, prefix)
+})
+
+export const DefaultLogger = createLogger('Default')

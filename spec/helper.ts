@@ -36,7 +36,7 @@ export const createMultipleAccounts = (amount: number) => {
 
 export const getListenerInstance = async (handler: (update: Update) => Promise<void>) => {
   const height = await Blockchain.fetchHeight()
-  return Blockchain.subscribe((chunk) => handler(parseUpdate(chunk)), height).cancel
+  return Blockchain.subscribe((chunk) => handler(parseUpdate(chunk)!), height ?? 1).cancel
 }
 
 export const burnKey = async (assetId: string, seed: string) => {

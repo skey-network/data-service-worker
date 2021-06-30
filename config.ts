@@ -1,24 +1,33 @@
+const { env } = process
+
 export default () => ({
+  app: {
+    logs: env.APP_LOGS === 'true'
+  },
   blockchain: {
-    dappFatherAddress: process.env.BLOCKCHAIN_DAPP_FATHER_ADDRESS!,
-    nodeUrl: process.env.BLOCKCHAIN_NODE_URL ?? 'http://localhost:6869',
-    chainId: process.env.BLOCKCHAIN_CHAIN_ID ?? 'R'
+    dappFatherAddress: env.BLOCKCHAIN_DAPP_FATHER_ADDRESS!,
+    nodeUrl: env.BLOCKCHAIN_NODE_URL ?? 'http://localhost:6869',
+    chainId: env.BLOCKCHAIN_CHAIN_ID ?? 'R'
   },
   db: {
-    name: process.env.DB_NAME ?? 'admin',
-    host: process.env.DB_HOST ?? 'localhost',
-    port: Number(process.env.DB_PORT ?? '27017'),
-    username: process.env.DB_USERNAME ?? 'root',
-    password: process.env.DB_PASSWORD ?? 'password'
+    name: env.DB_NAME ?? 'admin',
+    host: env.DB_HOST ?? 'localhost',
+    port: Number(env.DB_PORT ?? '27017'),
+    username: env.DB_USERNAME ?? 'root',
+    password: env.DB_PASSWORD ?? 'password'
   },
   grpc: {
-    host: process.env.GRPC_HOST ?? 'localhost',
-    updatesPort: Number(process.env.GRPC_UPDATES_PORT ?? '6881'),
-    apiPort: Number(process.env.GRPC_API_PORT ?? '6877')
+    host: env.GRPC_HOST ?? 'localhost',
+    updatesPort: Number(env.GRPC_UPDATES_PORT ?? '6881'),
+    apiPort: Number(env.GRPC_API_PORT ?? '6877')
+  },
+  redis: {
+    host: env.REDIS_HOST ?? 'localhost',
+    port: Number(env.REDIS_PORT ?? '6379')
   },
   telegram: {
-    token: process.env.TELEGRAM_TOKEN ?? 'none',
-    chatId: Number(process.env.TELEGRAM_CHAT_ID ?? '0')
+    token: env.TELEGRAM_TOKEN ?? 'none',
+    chatId: Number(env.TELEGRAM_CHAT_ID ?? '0')
   }
 })
 

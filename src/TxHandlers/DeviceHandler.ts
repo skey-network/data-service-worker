@@ -30,7 +30,8 @@ const handleSingleUpdate = async (item: DataUpdate) => {
   const update = parseProps(item.entries)
   const keyList = parseKeyList(item.entries)
 
-  if (!update && !keyList.length) return logger.debug('no updates')
+  if (!update || !keyList.length) return
+  // logger.debug('no updates')
 
   const device = await Device.exists({ address })
   const func = device ? updateDevice : createDevice
@@ -40,7 +41,8 @@ const handleSingleUpdate = async (item: DataUpdate) => {
 
 const createDevice = async (address: string, update: any, keyList: KeyItem[]) => {
   if (update.type !== 'device') {
-    return logger.debug('invalid type')
+    return
+    // return logger.debug('invalid type')
   }
 
   const list = keyList.filter((key) => key.whitelisted).map((key) => key.id)
@@ -99,7 +101,8 @@ const parseProps = (entries: Entry[]): any | null => {
         const obj = tryParse(string_value ?? '')
 
         if (!obj) {
-          return logger.debug('invalid json')
+          return
+          // return logger.debug('invalid json')
         }
 
         return { [key]: obj }
