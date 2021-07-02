@@ -1,6 +1,6 @@
 import { Container } from './Container'
 import { connect } from 'mongodb'
-import { createUri } from '../../src/Database'
+import { DatabaseClient } from '../../src/Database'
 
 export class DatabaseContainer extends Container {
   static readonly portStartIndex = 8100
@@ -42,7 +42,7 @@ export class DatabaseContainer extends Container {
   }
 
   get uri() {
-    return createUri({
+    return DatabaseClient.createUri({
       host: 'localhost',
       port: DatabaseContainer.getPort(this.id),
       name: 'admin',

@@ -2,7 +2,6 @@ import * as FT from './FactoryTypes'
 import * as helper from '../helper'
 import faker from 'faker'
 import * as FactoryHelpers from './FactoryHelpers'
-import { deviceTypes } from '../../models/Device'
 
 export const createContext = (dappFather: FT.DappFather): FT.Context => ({
   dappFather,
@@ -74,7 +73,7 @@ export const createDevice = (): FT.Device => ({
   visible: FactoryHelpers.randBool(),
   connected: FactoryHelpers.randBool(),
   details: {
-    deviceType: FactoryHelpers.randElement(deviceTypes as any),
+    deviceType: FactoryHelpers.randElement(['mobile', 'human']),
     deviceModel: faker.vehicle.model(),
     additionalDescription: faker.lorem.paragraph(5),
     url: faker.internet.url(),

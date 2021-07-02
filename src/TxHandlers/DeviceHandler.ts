@@ -1,8 +1,10 @@
 import { DataUpdate, Update } from '../UpdateParser'
 import { Entry } from '../Types'
 import { createLogger } from '../Logger'
-import { Device } from '../../models/Device'
 import { ACTIVE_KEYWORD, KEY_REGEX } from '../Constants'
+import { Handler } from './Handler'
+import { DatabaseClient } from '../Database'
+import { BlockchainClient } from '../BlockchainClient'
 
 interface KeyItem {
   id: string
@@ -18,102 +20,112 @@ const keysMap = Object.freeze({
 
 const logger = createLogger('UpdateDeviceHandler')
 
-export const handleDeviceUpdates = async (update: Update) => {
-  for (const item of update.dataUpdates) {
-    await handleSingleUpdate(item)
-  }
-}
-
-const handleSingleUpdate = async (item: DataUpdate) => {
-  const update = parseProps(item.entries)
-  const keyList = parseKeyList(item.entries)
-
-  if (!update && !keyList.length) return
-
-  const device = await Device.exists({ address: item.address })
-  const func = device ? updateDevice : createDevice
-
-  await func(item.address, update, keyList)
-}
-
-const createDevice = async (address: string, update: any, keyList: KeyItem[]) => {
-  if (update?.type !== 'device') return
-
-  const list = keyList.filter((key) => key.whitelisted).map((key) => key.id)
-
-  await Device.create({ ...update, address, keys: list })
-  logger.log(`Device ${address} created`)
-}
-
-const updateDevice = async (address: string, update: any, keyList: KeyItem[]) => {
-  const whitelisted = keyList.filter((k) => k.whitelisted).map((k) => k.id)
-  const blacklisted = keyList.filter((k) => !k.whitelisted).map((k) => k.id)
-
-  const $set = update
-  const $pull = { keys: { $in: blacklisted } }
-  const $push = { keys: { $each: whitelisted } }
-
-  if (update) {
-    await Device.updateOne({ address }, { $set })
+export class DeviceHandler extends Handler {
+  constructor(db: DatabaseClient, blockchain: BlockchainClient) {
+    super(db, blockchain)
   }
 
-  if (whitelisted.length) {
-    await Device.updateOne({ address }, { $push })
+  get deviceModel() {
+    return this.db.models.deviceModel
   }
 
-  if (blacklisted.length) {
-    await Device.updateOne({ address }, { $pull })
+  async handleUpdate(update: Update) {
+    for (const item of update.dataUpdates) {
+      await this.handleSingleUpdate(item)
+    }
   }
 
-  logger.log(`Device ${address} updated`)
-}
+  async handleSingleUpdate(item: DataUpdate) {
+    const update = this.parseProps(item.entries)
+    const keyList = this.parseKeyList(item.entries)
 
-const parseKeyList = (entries: Entry[]): KeyItem[] => {
-  return entries
-    .filter((entry) => KEY_REGEX.test(entry.key ?? ''))
-    .map((entry) => ({
-      id: entry.key!.replace('key_', ''),
-      whitelisted: entry.string_value === ACTIVE_KEYWORD
-    }))
-}
+    if (!update && !keyList.length) return
 
-const parseProps = (entries: Entry[]): any | null => {
-  const updates = entries
-    .map((entry) => {
-      const key = entry.key ?? ''
-      const { string_value, bool_value } = entry
+    const device = await this.deviceModel.exists({ address: item.address })
+    const func = device ? this.updateDevice : this.createDevice
 
-      if (keysMap.strings.includes(key)) {
-        return { [key]: string_value ?? '' }
-      }
+    await func.bind(this)(item.address, update, keyList)
+  }
 
-      if (keysMap.floats.includes(key)) {
-        return { [key]: Number(string_value ?? '0') }
-      }
+  async createDevice(address: string, update: any, keyList: KeyItem[]) {
+    if (update?.type !== 'device') return
 
-      if (keysMap.json.includes(key)) {
-        const obj = tryParse(string_value ?? '')
+    const list = keyList.filter((key) => key.whitelisted).map((key) => key.id)
 
-        if (!obj) return logger.error('invalid json')
+    await this.deviceModel.create({ ...update, address, keys: list })
+    logger.log(`Device ${address} created`)
+  }
 
-        return { [key]: obj }
-      }
+  async updateDevice(address: string, update: any, keyList: KeyItem[]) {
+    const whitelisted = keyList.filter((k) => k.whitelisted).map((k) => k.id)
+    const blacklisted = keyList.filter((k) => !k.whitelisted).map((k) => k.id)
 
-      if (keysMap.booleans.includes(key)) {
-        return { [key]: bool_value ?? false }
-      }
-    })
-    .filter((update) => update)
+    const $set = update
+    const $pull = { keys: { $in: blacklisted } }
+    const $push = { keys: { $each: whitelisted } }
 
-  if (updates.length === 0) return null
+    if (update) {
+      await this.deviceModel.updateOne({ address }, { $set })
+    }
 
-  return Object.assign({}, ...updates)
-}
+    if (whitelisted.length) {
+      await this.deviceModel.updateOne({ address }, { $push })
+    }
 
-const tryParse = (text: string) => {
-  try {
-    return JSON.parse(text)
-  } catch {
-    return null
+    if (blacklisted.length) {
+      await this.deviceModel.updateOne({ address }, { $pull })
+    }
+
+    logger.log(`Device ${address} updated`)
+  }
+
+  parseKeyList(entries: Entry[]): KeyItem[] {
+    return entries
+      .filter((entry) => KEY_REGEX.test(entry.key ?? ''))
+      .map((entry) => ({
+        id: entry.key!.replace('key_', ''),
+        whitelisted: entry.string_value === ACTIVE_KEYWORD
+      }))
+  }
+
+  parseProps(entries: Entry[]): any | null {
+    const updates = entries
+      .map((entry) => {
+        const key = entry.key ?? ''
+        const { string_value, bool_value } = entry
+
+        if (keysMap.strings.includes(key)) {
+          return { [key]: string_value ?? '' }
+        }
+
+        if (keysMap.floats.includes(key)) {
+          return { [key]: Number(string_value ?? '0') }
+        }
+
+        if (keysMap.json.includes(key)) {
+          const obj = this.tryParse(string_value ?? '')
+
+          if (!obj) return logger.error('invalid json')
+
+          return { [key]: obj }
+        }
+
+        if (keysMap.booleans.includes(key)) {
+          return { [key]: bool_value ?? false }
+        }
+      })
+      .filter((update) => update)
+
+    if (updates.length === 0) return null
+
+    return Object.assign({}, ...updates)
+  }
+
+  tryParse(text: string) {
+    try {
+      return JSON.parse(text)
+    } catch {
+      return null
+    }
   }
 }

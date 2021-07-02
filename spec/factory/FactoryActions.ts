@@ -1,6 +1,12 @@
-import { lib } from '../helper'
 import * as FT from './FactoryTypes'
 import { basicInfoEntries } from './FactoryHelpers'
+import { getInstance } from 'skey-lib'
+
+// TODO
+const lib = getInstance({
+  nodeUrl: 'http://localhost:7100',
+  chainId: 'R'
+})
 
 export const broadcastAccount = async (account: FT.Account) => {
   const { type, name, description, seed } = account

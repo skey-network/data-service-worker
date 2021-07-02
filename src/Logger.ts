@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import config from '../config'
 
 const write = (type: string, prefix: string, ...args: any) => {
-  if (!config().app.logs) return
+  // if (!config().app.logs) return
 
   const time = chalk.gray(new Date().toISOString())
 

@@ -35,6 +35,8 @@ export class Container {
     fs.mkdirSync(this.volumePath, { recursive: true })
   }
 
+  async waitToBeResponsive() {}
+
   parseArgs(props: ContainerProps) {
     return [
       'run',

@@ -1,7 +1,7 @@
 import '../setup'
 
 import * as helper from '../helper'
-import * as Blockchain from '../../src/Blockchain'
+import * as Blockchain from '../../src/BlockchainClient'
 import { SubscribeEvent } from '../../src/Types'
 
 describe('Blockchain', () => {

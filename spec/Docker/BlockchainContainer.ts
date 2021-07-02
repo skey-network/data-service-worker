@@ -15,8 +15,8 @@ export class BlockchainContainer extends Container {
       image: 'wavesplatform/wavesnode:latest',
       ports: [
         { key: ports.http, value: 6869 },
-        { key: ports.grpc, value: 6881 },
-        { key: ports.updates, value: 6877 }
+        { key: ports.grpc, value: 6877 },
+        { key: ports.updates, value: 6881 }
       ],
       volumes: [{ key: `${process.cwd()}/tmp/volumes/node_${id}`, value: '/etc/waves' }]
     })

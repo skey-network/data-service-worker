@@ -1,6 +1,6 @@
 import { getInstance } from 'skey-lib'
 import config from '../config'
-import * as Blockchain from '../src/Blockchain'
+import * as Blockchain from '../src/BlockchainClient'
 import { parseUpdate, Update } from '../src/UpdateParser'
 import * as Transactions from '@waves/waves-transactions'
 
@@ -35,8 +35,8 @@ export const createMultipleAccounts = (amount: number) => {
 }
 
 export const getListenerInstance = async (handler: (update: Update) => Promise<void>) => {
-  const height = await Blockchain.fetchHeight()
-  return Blockchain.subscribe((chunk) => handler(parseUpdate(chunk)!), height ?? 1).cancel
+  // const height = await Blockchain.fetchHeight()
+  // return Blockchain.subscribe((chunk) => handler(parseUpdate(chunk)!), height ?? 1).cancel
 }
 
 export const burnKey = async (assetId: string, seed: string) => {

@@ -1,7 +1,7 @@
-import config from '../config'
 import mongoose from 'mongoose'
+import { createModels, Models } from '../schemas/Schemas'
 
-export interface DatabaseOptions {
+export interface ConnectionParams {
   host: string
   port: number
   name: string
@@ -9,9 +9,7 @@ export interface DatabaseOptions {
   password: string
 }
 
-export const databaseOptions: DatabaseOptions = config().db
-
-export const connectOptions: mongoose.ConnectOptions = Object.freeze({
+export const defaultOptions: mongoose.ConnectOptions = Object.freeze({
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
@@ -19,32 +17,41 @@ export const connectOptions: mongoose.ConnectOptions = Object.freeze({
   validateOptions: true
 })
 
-export const connect = async () => {
-  if ([1, 2].includes(mongoose.connection.readyState)) return
+export class DatabaseClient {
+  connection: mongoose.Connection
+  params: ConnectionParams
+  options: mongoose.ConnectOptions
+  models: Models
 
-  const uri = createUri(databaseOptions)
-  await mongoose.connect(uri, connectOptions)
-}
+  constructor(params: ConnectionParams, options?: mongoose.ConnectOptions) {
+    this.params = params
+    this.options = options ?? defaultOptions
+  }
 
-export const disconnect = async () => {
-  if ([0, 3].includes(mongoose.connection.readyState)) return
+  async connect() {
+    const uri = DatabaseClient.createUri(this.params)
+    this.connection = await mongoose.createConnection(uri, this.options)
+    this.models = createModels(this.connection)
+  }
 
-  await mongoose.disconnect()
-}
+  async disconnect() {
+    await this.connection.close(true)
+  }
 
-export const createUri = (options: DatabaseOptions) => {
-  const { host, port, name, username, password } = options
-  return `mongodb://${username}:${password}@${host}:${port}/${name}`
-}
+  static createUri(params: ConnectionParams) {
+    const { host, port, name, username, password } = params
+    return `mongodb://${username}:${password}@${host}:${port}/${name}`
+  }
 
-export const dropAllCollections = async () => {
-  const whitelist = ['system.version', 'system.users', 'events']
+  async dropAllCollections() {
+    const whitelist = ['system.version', 'system.users', 'events']
 
-  const collections = await mongoose.connection.db.collections()
+    const collections = await this.connection.db.collections()
 
-  const promises = collections
-    .filter((collection) => !whitelist.includes(collection.collectionName))
-    .map((collection) => collection.drop())
+    const promises = collections
+      .filter((collection) => !whitelist.includes(collection.collectionName))
+      .map((collection) => collection.drop())
 
-  await Promise.all(promises)
+    await Promise.all(promises)
+  }
 }

@@ -9,79 +9,94 @@ import {
   ORGANISATION_REGEX,
   ORGANISATION_PREFIX
 } from '../Constants'
-import { Supplier } from '../../models/Supplier'
-import { Organisation } from '../../models/Organisation'
 import { bufferToString } from '../Common'
+import { Handler } from './Handler'
+import { DatabaseClient } from '../Database'
+import { BlockchainClient } from '../BlockchainClient'
 
 const logger = createLogger('DappFatherHandler')
 
-export const handleDappFatherUpdates = async (update: Update) => {
-  for (const item of update.dataUpdates) {
-    await handleSingleUpdate(item)
-  }
-}
-
-const handleSingleUpdate = async (item: DataUpdate) => {
-  const { dappFatherAddress } = config().blockchain
-  const address = bufferToString(item.address)
-
-  if (address !== dappFatherAddress) {
-    return
-    // return logger.debug('address is not dapp father')
+export class DappFatherHandler extends Handler {
+  constructor(db: DatabaseClient, blockchain: BlockchainClient) {
+    super(db, blockchain)
   }
 
-  for (const entry of item.entries) {
-    await handleSupplierEntry(entry)
-    await handleOrganisationEntry(entry)
-  }
-}
-
-const handleSupplierEntry = async (entry: Entry) => {
-  if (!SUPPLIER_REGEX.test(entry.key ?? '')) {
-    return
-    // return logger.debug('invalid key')
+  get supplierModel() {
+    return this.db.models.supplierModel
   }
 
-  const address = entry.key!.replace(SUPPLIER_PREFIX, '')
-  const whitelisted = entry.string_value === ACTIVE_KEYWORD
-
-  const exists = await Supplier.exists({ address })
-
-  const func = exists ? updateSupplier : createSupplier
-  return await func(address, whitelisted)
-}
-
-const handleOrganisationEntry = async (entry: Entry) => {
-  if (!ORGANISATION_REGEX.test(entry.key ?? '')) {
-    return
-    // return logger.debug('invalid key')
+  get organisationModel() {
+    return this.db.models.organisationModel
   }
 
-  const address = entry.key!.replace(ORGANISATION_PREFIX, '')
-  const whitelisted = entry.string_value === ACTIVE_KEYWORD
+  async handleUpdate(update: Update) {
+    for (const item of update.dataUpdates) {
+      await this.handleSingleUpdate(item)
+    }
+  }
 
-  const exists = await Organisation.exists({ address })
+  async handleSingleUpdate(item: DataUpdate) {
+    const { dappFatherAddress } = config().blockchain
+    const address = bufferToString(item.address)
 
-  const func = exists ? updateOrganisation : createOrganisation
-  return await func(address, whitelisted)
-}
+    if (address !== dappFatherAddress) {
+      return
+      // return logger.debug('address is not dapp father')
+    }
 
-const createSupplier = async (address: string, whitelisted: boolean) => {
-  await Supplier.create({ address, devices: [], whitelisted })
-  logger.log(`Supplier ${address} created`)
-}
+    for (const entry of item.entries) {
+      await this.handleSupplierEntry(entry)
+      await this.handleOrganisationEntry(entry)
+    }
+  }
 
-const updateSupplier = async (address: string, whitelisted: boolean) => {
-  await Supplier.updateOne({ address }, { whitelisted })
-  logger.log(`Supplier ${address} updated`)
-}
+  async handleSupplierEntry(entry: Entry) {
+    if (!SUPPLIER_REGEX.test(entry.key ?? '')) {
+      return
+      // return logger.debug('invalid key')
+    }
 
-const createOrganisation = async (address: string, whitelisted: boolean) => {
-  await Organisation.create({ address, whitelisted })
-  logger.log(`Organisation ${address} created`)
-}
+    const address = entry.key!.replace(SUPPLIER_PREFIX, '')
+    const whitelisted = entry.string_value === ACTIVE_KEYWORD
 
-const updateOrganisation = async (address: string, whitelisted: boolean) => {
-  await Organisation.updateOne({ address }, { whitelisted })
-  logger.log(`Organisation ${address} updated`)
+    const exists = await this.supplierModel.exists({ address })
+
+    const func = exists ? this.updateSupplier : this.createSupplier
+    return await func.bind(this)(address, whitelisted)
+  }
+
+  async handleOrganisationEntry(entry: Entry) {
+    if (!ORGANISATION_REGEX.test(entry.key ?? '')) {
+      return
+      // return logger.debug('invalid key')
+    }
+
+    const address = entry.key!.replace(ORGANISATION_PREFIX, '')
+    const whitelisted = entry.string_value === ACTIVE_KEYWORD
+
+    const exists = await this.organisationModel.exists({ address })
+
+    const func = exists ? this.updateOrganisation : this.createOrganisation
+    return await func.bind(this)(address, whitelisted)
+  }
+
+  async createSupplier(address: string, whitelisted: boolean) {
+    await this.supplierModel.create({ address, devices: [], whitelisted })
+    logger.log(`Supplier ${address} created`)
+  }
+
+  async updateSupplier(address: string, whitelisted: boolean) {
+    await this.supplierModel.updateOne({ address }, { whitelisted })
+    logger.log(`Supplier ${address} updated`)
+  }
+
+  async createOrganisation(address: string, whitelisted: boolean) {
+    await this.organisationModel.create({ address, whitelisted })
+    logger.log(`Organisation ${address} created`)
+  }
+
+  async updateOrganisation(address: string, whitelisted: boolean) {
+    await this.organisationModel.updateOne({ address }, { whitelisted })
+    logger.log(`Organisation ${address} updated`)
+  }
 }
