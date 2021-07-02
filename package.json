@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npm run build && node dist/src/main.js",
     "build": "rm -rf dist && tsc",
-    "test": "jest --verbose --runInBand --notify --config ./spec/config.json",
+    "test": "jest --verbose --notify --config ./spec/config.json",
     "test:watch": "jest --config ./spec/config.json  --watch"
   },
   "keywords": [],
@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@types/bull": "^3.15.1",
-    "@types/faker": "^5.5.5",
+    "@types/faker": "^5.5.6",
     "@types/jest": "^26.0.22",
     "@types/node": "^14.14.41",
     "faker": "^5.5.3",

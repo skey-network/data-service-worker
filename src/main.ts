@@ -32,5 +32,5 @@ const _ = (async () => {
   await queue.clean(0, 'failed')
 
   // const height = await Blockchain.fetchHeight()
-  Blockchain.subscribe(handle, 98032)
+  Blockchain.subscribe(handle, 1)
 })()

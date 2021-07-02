@@ -8,7 +8,7 @@ export const KeySchema = createSchema(
     name: Type.string({ required: true }),
     device: Type.string({ required: true, index: true }),
     validTo: Type.number({ required: true }),
-    issueTimestamp: Type.number({ required: true }),
+    issueTimestamp: Type.number(),
     burned: Type.boolean({ default: false })
   },
   {

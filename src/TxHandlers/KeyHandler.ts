@@ -50,9 +50,15 @@ const handleBalanceUpdates = async (update: Update) => {
   }
 }
 
+const getIssueTimestamp = (asset: AssetInfoResponse) => {
+  const value = asset.issue_transaction?.transaction?.timestamp
+  return typeof value === 'string' ? Number(value) : null
+}
+
 const save = async (assetId: string, asset: AssetInfoResponse, owner?: string) => {
+  logger.debug('wtf', asset)
   const { device, validTo } = extractKeyData(asset.description ?? '')
-  const issueTimestamp = Number(asset.issue_transaction?.transaction?.timestamp)
+  const issueTimestamp = getIssueTimestamp(asset)
   const name = asset.name
   const issuer = publicKeyToAddress(asset.issuer)
 
@@ -69,6 +75,8 @@ const save = async (assetId: string, asset: AssetInfoResponse, owner?: string) =
   }
 
   const doc = await Key.findOne({ assetId })
+
+  logger.debug(assetId)
 
   if (doc) {
     await Key.updateOne({ assetId }, { owner, burned })
