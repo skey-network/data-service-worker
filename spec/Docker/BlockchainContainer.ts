@@ -25,6 +25,10 @@ export class BlockchainContainer extends Container {
     this.prepareVolume()
   }
 
+  get ports() {
+    return BlockchainContainer.getPorts(this.id)
+  }
+
   static getPorts(id: number) {
     return {
       http: this.portStartIndex + id * 3,
@@ -34,7 +38,7 @@ export class BlockchainContainer extends Container {
   }
 
   async waitToBeResponsive() {
-    const treshold = 2
+    const treshold = 5
     const interval = 1000
 
     return new Promise<void>((resolve) => {

@@ -23,7 +23,8 @@ export class OrganisationHandler extends Handler {
     return this.db.models.organisationModel
   }
 
-  async handle(update: Update) {
+  async handleUpdate(update: Update) {
+    console.log('parse organisation')
     for (const item of update.dataUpdates) {
       await this.handleSingleUpdate(item)
     }

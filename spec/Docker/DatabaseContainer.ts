@@ -41,6 +41,10 @@ export class DatabaseContainer extends Container {
     })
   }
 
+  get port() {
+    return DatabaseContainer.getPort(this.id)
+  }
+
   get uri() {
     return DatabaseClient.createUri({
       host: 'localhost',

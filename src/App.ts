@@ -1,4 +1,4 @@
-import { Handler } from './TxHandlers/Handler'
+import type { IHandler } from './TxHandlers/Handler'
 
 import { DappFatherHandler } from './TxHandlers/DappFatherHandler'
 import { EventHandler } from './TxHandlers/EventHandler'
@@ -15,13 +15,18 @@ import { SubscribeEvent } from './Types'
 import { parseUpdate, Update } from './UpdateParser'
 import Queue from 'bull'
 
+interface JobData {
+  handler: string
+  update: Update
+}
+
 export class App {
-  handlers: Handler[]
+  handlers: IHandler[]
   config: Config
   db: DatabaseClient
   blockchain: BlockchainClient
   grpc: GrpcClient
-  queue: Queue.Queue<Update>
+  queue: Queue.Queue<JobData>
   cancelListener: () => Promise<void>
 
   constructor(config: Config) {
@@ -33,6 +38,7 @@ export class App {
     this.grpc = new GrpcClient(this.config.grpc)
     this.blockchain = new BlockchainClient(this.grpc)
     this.queue = new Queue('Default', { redis: this.config.redis })
+    this.queue.process(this.process.bind(this))
 
     await this.db.connect()
     this.loadHandlers()
@@ -59,37 +65,29 @@ export class App {
   }
 
   async handleChunk(chunk: SubscribeEvent) {
+    console.log('handle chunk', chunk.update?.height)
+
     if (!this.hasTransactions(chunk)) return
 
     const update = parseUpdate(chunk)
     if (!update) return
 
-    const job = await this.queue.add(update)
-    console.log('Processing block update', update.height, 'with job id', Number(job.id))
+    for (const handler of this.handlers) {
+      const job = await this.queue.add({ update, handler: handler.constructor.name })
+      console.log('Processing block update', update.height, 'with job id', Number(job.id))
+    }
   }
 
-  async process(job: Queue.Job<Update>) {
-    const percentPerTask = Math.floor(100 / this.handlers.length)
+  async process(job: Queue.Job<JobData>) {
+    console.log('Processing job', job.id, 'with handler', job.data.handler)
 
-    let failed = false
-    let progress = 0
-
-    await Promise.all(
-      this.handlers.map(async (handler) => {
-        try {
-          await handler.handleUpdate(job.data)
-          progress += percentPerTask
-          await job.progress(progress)
-        } catch (err) {
-          console.error(err)
-          failed = true
-        }
-      })
+    const handler = this.handlers.find(
+      (handler) => handler.constructor.name === job.data.handler
     )
 
-    if (!failed) return
+    if (!handler) throw new Error('handler not found')
 
-    await job.moveToFailed({ message: 'Job failed' })
+    await handler.handleUpdate(job.data.update)
   }
 
   hasTransactions(chunk: SubscribeEvent) {

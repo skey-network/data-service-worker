@@ -2,6 +2,10 @@ import { BlockchainClient } from '../BlockchainClient'
 import { DatabaseClient } from '../Database'
 import { Update } from '../UpdateParser'
 
+export interface IHandler {
+  handleUpdate: (chunk: Update) => Promise<void>
+}
+
 export abstract class Handler {
   db: DatabaseClient
   blockchain: BlockchainClient
@@ -9,9 +13,5 @@ export abstract class Handler {
   constructor(db: DatabaseClient, blockchain: BlockchainClient) {
     this.db = db
     this.blockchain = blockchain
-  }
-
-  async handleUpdate(update: Update) {
-    throw new Error('not implemented')
   }
 }

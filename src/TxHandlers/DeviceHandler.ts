@@ -30,6 +30,7 @@ export class DeviceHandler extends Handler {
   }
 
   async handleUpdate(update: Update) {
+    console.log('parse device')
     for (const item of update.dataUpdates) {
       await this.handleSingleUpdate(item)
     }
@@ -38,6 +39,8 @@ export class DeviceHandler extends Handler {
   async handleSingleUpdate(item: DataUpdate) {
     const update = this.parseProps(item.entries)
     const keyList = this.parseKeyList(item.entries)
+
+    console.log(update, keyList)
 
     if (!update && !keyList.length) return
 

@@ -1,40 +1,41 @@
-import * as Generators from './FactoryGenerators'
-import * as Actions from './FactoryActions'
-import * as FT from './FactoryTypes'
-import * as Helpers from './FactoryHelpers'
 import { sponsor } from '../helper'
+import { DappFather } from './models/DappFather'
+import { Config } from '../../src/Config'
+import { Context } from './models/Context'
+import { Account } from './models/Account'
+import { Supplier } from './models/Supplier'
+import { Organisation } from './models/Organisation'
+import { Device } from './models/Device'
+import { User } from './models/User'
 
-export const createBundle = (amount: number) => {
-  const df = Generators.createDappFather()
-  const ctx = Generators.createContext(df)
+export class Factory {
+  config: Config
+  ctx: Context
 
-  ctx.suppliers = Helpers.multiplyAndExec(Generators.createSupplier, amount)
-  ctx.organisations = Helpers.multiplyAndExec(Generators.createOrganisation, amount)
-  ctx.users = Helpers.multiplyAndExec(Generators.createSupplier, amount)
-  ctx.devices = Helpers.multiplyAndExec(Generators.createDevice, amount)
+  constructor(config: Config) {
+    this.config = config
+    const df = new DappFather(this.config)
+    this.ctx = new Context(df)
+  }
 
-  return ctx
-}
+  createBundle(amount: number) {
+    this.ctx.suppliers = this.createNAccounts(amount, Supplier)
+    this.ctx.organisations = this.createNAccounts(amount, Organisation)
+    this.ctx.devices = this.createNAccounts(amount, Device)
+    this.ctx.users = this.createNAccounts(amount, User)
+  }
 
-export const sponsorAccounts = async (ctx: FT.Context) => {
-  const accounts: FT.Account[] = [
-    ctx.dappFather,
-    ...ctx.suppliers,
-    ...ctx.organisations,
-    ...ctx.devices,
-    ...ctx.users
-  ]
+  createNAccounts<T extends Account>(n: number, classRef: any): T[] {
+    return Array(n)
+      .fill(null)
+      .map(() => new classRef(this.config))
+  }
 
-  await Promise.all(accounts.map((acc) => sponsor(acc.address, 1)))
-}
+  async broadcast() {
+    await Promise.all(this.ctx.accounts.map((acc) => acc.broadcast()))
+  }
 
-export const broadcastBundle = async (ctx: FT.Context) => {
-  await Actions.broadcastDappFather(ctx.dappFather)
-
-  await Promise.all(ctx.suppliers.map(Actions.broadcastSupplier))
-  await Promise.all(ctx.organisations.map(Actions.broadcastOrganisation))
-  await Promise.all(ctx.users.map(Actions.broadcastUser))
-  await Promise.all(ctx.devices.map(Actions.broadcastDevice))
-
-  return ctx
+  async sponsorAccounts() {
+    await Promise.all(this.ctx.accounts.map((acc) => sponsor(acc.address, 1)))
+  }
 }

@@ -25,6 +25,10 @@ export class RedisContainer extends Container {
     })
   }
 
+  get port() {
+    return RedisContainer.getPort(this.id)
+  }
+
   static getPort(id: number) {
     return RedisContainer.portStartIndex + id
   }

@@ -29,6 +29,8 @@ export class SupplierHandler extends Handler {
   }
 
   async handleUpdate(update: Update) {
+    console.log('parse supplier')
+
     for (const item of update.dataUpdates) {
       await this.handleSingleUpdate(item)
     }
@@ -36,6 +38,7 @@ export class SupplierHandler extends Handler {
 
   async handleSingleUpdate(item: DataUpdate) {
     const address = bufferToString(item.address ?? [])
+    console.log('supplier', address)
     const payload = this.parseEntries(item.entries)
 
     const exists = await this.supplierModel.exists({ address })

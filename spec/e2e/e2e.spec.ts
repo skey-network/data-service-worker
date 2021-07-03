@@ -1,45 +1,48 @@
 import { App } from '../../src/App'
+import { delay } from '../../src/Common'
 import { Config } from '../../src/Config'
-import { BlockchainContainer } from '../Docker/BlockchainContainer'
 import { createE2eContext, removeE2eContext, E2eContext } from '../Docker/Context'
-import { DatabaseContainer } from '../Docker/DatabaseContainer'
-import { RedisContainer } from '../Docker/RedisContainer'
-import * as Factory from '../factory/Factory'
+import { Factory } from '../factory/Factory'
 
 const createConfig = (e2e: E2eContext): Config => ({
-  app: { logs: true },
+  app: { logs: false },
   blockchain: {
     dappFatherAddress: '3MLiRijBGgFLZeXMm6DxHCAVkRnCTxS7hog',
-    nodeUrl: `http://localhost:${BlockchainContainer.getPorts(e2e.blockchain.id).http}`,
+    nodeUrl: `http://localhost:${e2e.blockchain.ports.http}`,
     chainId: 'R'
   },
   db: {
     name: 'admin',
     host: 'localhost',
-    port: DatabaseContainer.getPort(e2e.db.id),
+    port: e2e.db.port,
     username: 'root',
     password: 'password'
   },
   grpc: {
     host: 'localhost',
-    updatesPort: BlockchainContainer.getPorts(e2e.blockchain.id).updates,
-    apiPort: BlockchainContainer.getPorts(e2e.blockchain.id).grpc
+    updatesPort: e2e.blockchain.ports.updates,
+    apiPort: e2e.blockchain.ports.grpc
   },
   redis: {
     host: 'localhost',
-    port: RedisContainer.getPort(e2e.redis.id)
+    port: e2e.redis.port
   }
 })
 
 describe('e2e', () => {
   let e2e: E2eContext
+  let config: Config
   let app: App
 
   beforeAll(async () => {
     e2e = await createE2eContext(0)
-    app = new App(createConfig(e2e))
+    config = createConfig(e2e)
+    app = new App(config)
+
     await app.init()
     await app.startListener()
+
+    await delay(1000)
   })
 
   afterAll(async () => {
@@ -47,11 +50,25 @@ describe('e2e', () => {
     await removeE2eContext(e2e)
   })
 
-  it('', async () => {
-    // const ctx = Factory.createBundle(5)
-    // await Factory.sponsorAccounts(ctx)
-    // await Factory.broadcastBundle(ctx)
-    // console.log(ctx)
-    // await delay(3600000)
+  it('aaa', async () => {
+    await app.queue.pause()
+
+    const factory = new Factory(config)
+    factory.createBundle(5)
+    await factory.sponsorAccounts()
+    await factory.broadcast()
+
+    console.log('tasks in queue', await app.queue.getJobCounts())
+
+    await app.queue.resume()
+    await delay(10000)
+
+    console.log('tasks in queue', await app.queue.getJobCounts())
+
+    await delay(2000)
+
+    console.log(await app.db.models.supplierModel.estimatedDocumentCount())
+    console.log(await app.db.models.deviceModel.estimatedDocumentCount())
+    console.log(await app.db.models.organisationModel.estimatedDocumentCount())
   })
 })
