@@ -1,5 +1,4 @@
 import { App } from '../../src/App'
-import { delay } from '../../src/Common'
 import { Config } from '../../src/Config'
 import { BlockchainContainer } from '../Docker/BlockchainContainer'
 import { createE2eContext, removeE2eContext, E2eContext } from '../Docker/Context'
@@ -37,26 +36,22 @@ describe('e2e', () => {
   let app: App
 
   beforeAll(async () => {
-    e2e = await createE2eContext(1)
+    e2e = await createE2eContext(0)
     app = new App(createConfig(e2e))
     await app.init()
-    console.log('started')
-    await delay(10000)
     await app.startListener()
   })
 
   afterAll(async () => {
-    // await removeE2eContext(e2e)
     await app.destroy()
+    await removeE2eContext(e2e)
   })
 
   it('', async () => {
-    const ctx = Factory.createBundle(5)
-    await Factory.sponsorAccounts(ctx)
-    await Factory.broadcastBundle(ctx)
-
-    console.log(ctx)
-
-    await delay(3600000)
+    // const ctx = Factory.createBundle(5)
+    // await Factory.sponsorAccounts(ctx)
+    // await Factory.broadcastBundle(ctx)
+    // console.log(ctx)
+    // await delay(3600000)
   })
 })

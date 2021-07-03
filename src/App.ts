@@ -39,7 +39,9 @@ export class App {
   }
 
   async destroy() {
-    await Promise.all([this.stopListener(), this.db.disconnect(), this.queue.close()])
+    await this.stopListener()
+    await this.queue.close()
+    await this.db.disconnect()
   }
 
   async startListener() {

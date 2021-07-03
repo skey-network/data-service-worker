@@ -16,8 +16,8 @@ export const accounts = {
 }
 
 export const lib = getInstance({
-  nodeUrl: config().blockchain.nodeUrl,
-  chainId: config().blockchain.chainId
+  nodeUrl: 'http://localhost:7100',
+  chainId: 'R'
 })
 
 export const delay = lib.delay

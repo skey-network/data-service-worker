@@ -93,6 +93,7 @@ export class BlockchainClient {
     const cancel = async () => {
       call.cancel()
       await delay(CANCEL_TIMEOUT)
+      console.log()
     }
 
     return Object.assign(promise, { cancel })

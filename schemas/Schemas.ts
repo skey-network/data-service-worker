@@ -15,9 +15,9 @@ export interface Models {
 }
 
 export const createModels = (connection: Connection): Models => ({
-  deviceModel: connection.model(Device.name, DeviceSchema),
-  eventModel: connection.model(Event.name, EventSchema),
-  keyModel: connection.model(Key.name, KeySchema),
-  organisationModel: connection.model(Organisation.name, OrganisationSchema),
-  supplierModel: connection.model(Supplier.name, SupplierSchema)
+  deviceModel: connection.model(Device.name, DeviceSchema) as any,
+  eventModel: connection.model(Event.name, EventSchema) as any,
+  keyModel: connection.model(Key.name, KeySchema) as any,
+  organisationModel: connection.model(Organisation.name, OrganisationSchema) as any,
+  supplierModel: connection.model(Supplier.name, SupplierSchema) as any
 })
