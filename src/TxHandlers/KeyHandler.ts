@@ -1,5 +1,5 @@
 import { Update } from '../UpdateParser'
-import { createLogger } from '../Logger'
+import { Logger } from '../Logger'
 import { AssetInfoResponse } from '../Types'
 import { publicKeyToAddress } from '../Common'
 import { bufferToString } from '../Common'
@@ -7,16 +7,12 @@ import { Handler } from './Handler'
 import { DatabaseClient } from '../Database'
 import { BlockchainClient } from '../BlockchainClient'
 
-const logger = createLogger('KeyHandler')
-
-const rollbackWarning = (height: number) => {
-  logger.warn(`Cannot fetch asset at height ${height}. There might have been a rollback.`)
-}
-
 export class KeyHandler extends Handler {
   constructor(db: DatabaseClient, blockchain: BlockchainClient) {
     super(db, blockchain)
   }
+
+  private logger = new Logger(KeyHandler.name)
 
   get keyModel() {
     return this.db.models.keyModel
@@ -32,7 +28,7 @@ export class KeyHandler extends Handler {
       const assetId = bufferToString(assetUpdate.after?.asset_id)
 
       const asset = await this.blockchain.fetchAsset(assetId)
-      if (!asset) return rollbackWarning(update.height)
+      if (!asset) return this.rollbackWarning(update.height)
 
       const validationError = this.isValidAsset(asset)
       if (validationError) continue
@@ -51,13 +47,19 @@ export class KeyHandler extends Handler {
       const owner = bufferToString(balance.address)
 
       const asset = await this.blockchain.fetchAsset(assetId)
-      if (!asset) return rollbackWarning(update.height)
+      if (!asset) return this.rollbackWarning(update.height)
 
       const error = this.isValidAsset(asset)
       if (error) continue
 
       await this.save(assetId, asset, owner)
     }
+  }
+
+  rollbackWarning(height: number) {
+    return this.logger.warn(
+      `Cannot fetch asset at height ${height}. There might have been a rollback.`
+    )
   }
 
   getIssueTimestamp(asset: AssetInfoResponse) {
@@ -84,14 +86,12 @@ export class KeyHandler extends Handler {
 
     const doc = await this.keyModel.findOne({ assetId })
 
-    logger.debug(assetId)
-
     if (doc) {
       await this.keyModel.updateOne({ assetId }, { owner, burned })
-      logger.log(`Key ${assetId} updated`)
+      this.logger.log(`Key ${assetId} updated`)
     } else {
       await this.keyModel.create({ ...obj, owner: obj.issuer })
-      logger.log(`Key ${assetId} created`)
+      this.logger.log(`Key ${assetId} created`)
     }
   }
 

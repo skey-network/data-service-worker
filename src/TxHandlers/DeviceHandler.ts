@@ -1,10 +1,10 @@
 import { DataUpdate, Update } from '../UpdateParser'
 import { Entry } from '../Types'
-import { createLogger } from '../Logger'
 import { ACTIVE_KEYWORD, KEY_REGEX } from '../Constants'
 import { Handler } from './Handler'
 import { DatabaseClient } from '../Database'
 import { BlockchainClient } from '../BlockchainClient'
+import { Logger } from '../Logger'
 
 interface KeyItem {
   id: string
@@ -18,19 +18,18 @@ const keysMap = Object.freeze({
   booleans: ['visible', 'active', 'connected']
 })
 
-const logger = createLogger('UpdateDeviceHandler')
-
 export class DeviceHandler extends Handler {
   constructor(db: DatabaseClient, blockchain: BlockchainClient) {
     super(db, blockchain)
   }
+
+  private logger = new Logger(DeviceHandler.name)
 
   get deviceModel() {
     return this.db.models.deviceModel
   }
 
   async handleUpdate(update: Update) {
-    console.log('parse device')
     for (const item of update.dataUpdates) {
       await this.handleSingleUpdate(item)
     }
@@ -39,8 +38,6 @@ export class DeviceHandler extends Handler {
   async handleSingleUpdate(item: DataUpdate) {
     const update = this.parseProps(item.entries)
     const keyList = this.parseKeyList(item.entries)
-
-    console.log(update, keyList)
 
     if (!update && !keyList.length) return
 
@@ -56,7 +53,7 @@ export class DeviceHandler extends Handler {
     const list = keyList.filter((key) => key.whitelisted).map((key) => key.id)
 
     await this.deviceModel.create({ ...update, address, keys: list })
-    logger.log(`Device ${address} created`)
+    this.logger.log(`Device ${address} created`)
   }
 
   async updateDevice(address: string, update: any, keyList: KeyItem[]) {
@@ -79,7 +76,7 @@ export class DeviceHandler extends Handler {
       await this.deviceModel.updateOne({ address }, { $pull })
     }
 
-    logger.log(`Device ${address} updated`)
+    this.logger.log(`Device ${address} updated`)
   }
 
   parseKeyList(entries: Entry[]): KeyItem[] {
@@ -108,7 +105,7 @@ export class DeviceHandler extends Handler {
         if (keysMap.json.includes(key)) {
           const obj = this.tryParse(string_value ?? '')
 
-          if (!obj) return logger.error('invalid json')
+          if (!obj) return this.logger.error('invalid json')
 
           return { [key]: obj }
         }

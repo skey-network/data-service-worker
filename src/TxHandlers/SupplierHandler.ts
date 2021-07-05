@@ -1,7 +1,7 @@
 import { DataUpdate, Update } from '../UpdateParser'
 import { Entry } from '../Types'
 import { ACTIVE_KEYWORD, DEVICE_PREFIX, DEVICE_REGEX } from '../Constants'
-import { createLogger } from '../Logger'
+import { Logger } from '../Logger'
 import { bufferToString } from '../Common'
 import { Handler } from './Handler'
 import { DatabaseClient } from '../Database'
@@ -17,20 +17,18 @@ export interface SupplierPayload {
   }[]
 }
 
-const logger = createLogger('UpdateSupplierHandler')
-
 export class SupplierHandler extends Handler {
   constructor(db: DatabaseClient, blockchain: BlockchainClient) {
     super(db, blockchain)
   }
+
+  private logger = new Logger(SupplierHandler.name)
 
   get supplierModel() {
     return this.db.models.supplierModel
   }
 
   async handleUpdate(update: Update) {
-    console.log('parse supplier')
-
     for (const item of update.dataUpdates) {
       await this.handleSingleUpdate(item)
     }
@@ -38,7 +36,6 @@ export class SupplierHandler extends Handler {
 
   async handleSingleUpdate(item: DataUpdate) {
     const address = bufferToString(item.address ?? [])
-    console.log('supplier', address)
     const payload = this.parseEntries(item.entries)
 
     const exists = await this.supplierModel.exists({ address })
@@ -60,7 +57,7 @@ export class SupplierHandler extends Handler {
     }
 
     await this.supplierModel.create(obj)
-    logger.log(`Supplier ${address} created`)
+    this.logger.log(`Supplier ${address} created`)
   }
 
   async updateSupplier(address: string, payload: SupplierPayload) {
@@ -87,7 +84,7 @@ export class SupplierHandler extends Handler {
       await this.supplierModel.updateOne({ address }, { $pull })
     }
 
-    logger.log(`Supplier ${address} updated`)
+    this.logger.log(`Supplier ${address} updated`)
   }
 
   parseEntries(entries: Entry[]): SupplierPayload {

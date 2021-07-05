@@ -6,9 +6,6 @@ import * as Database from './Database'
 import { parseUpdate } from './UpdateParser'
 import type { SubscribeEvent } from './Types'
 // import { queue } from './Queue'
-import { createLogger } from './Logger'
-
-const logger = createLogger('main')
 
 // const hasTransactions = (chunk: SubscribeEvent) =>
 //   (chunk.update?.append?.transaction_ids ?? []).length > 0

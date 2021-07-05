@@ -1,22 +1,22 @@
 import { Update } from '../UpdateParser'
 import * as Common from '../Common'
 import { TransactionResponse } from '../../proto/interfaces/waves/node/grpc/TransactionResponse'
-import { createLogger } from '../Logger'
 import { Handler } from './Handler'
 import { DatabaseClient } from '../Database'
 import { BlockchainClient } from '../BlockchainClient'
+import { Logger } from '../Logger'
 
 const INT = 4
 const BYTE = 1
 
 type PreIncrement = (val: number) => number
 
-const logger = createLogger('EventHandler')
-
 export class EventHandler extends Handler {
   constructor(db: DatabaseClient, blockchain: BlockchainClient) {
     super(db, blockchain)
   }
+
+  private logger = new Logger(EventHandler.name)
 
   get eventModel() {
     return this.db.models.eventModel
@@ -38,7 +38,7 @@ export class EventHandler extends Handler {
 
   async handleEvent(itx: TransactionResponse) {
     const invoke = itx.transaction?.transaction?.invoke_script
-    if (!invoke) return logger.error('invalid itx data')
+    if (!invoke) return this.logger.error('invalid itx data')
 
     const txHash = Common.bufferToString(itx.id)
     const sender = Common.publicKeyToAddress(
@@ -62,7 +62,7 @@ export class EventHandler extends Handler {
     if (exists) return
 
     await this.eventModel.create(obj)
-    logger.log(`Event ${obj.txHash} created`)
+    this.logger.log(`Event ${obj.txHash} created`)
   }
 
   startPreIncrement(initial: number) {

@@ -1,18 +1,16 @@
 import { Update, DataUpdate } from '../UpdateParser'
-import { createLogger } from '../Logger'
 import { bufferToString } from '../Common'
 import { Entry } from '../Types'
 import { Handler } from './Handler'
 import { DatabaseClient } from '../Database'
 import { BlockchainClient } from '../BlockchainClient'
+import { Logger } from '../Logger'
 
 interface OrganisationPayload {
   name: string
   description: string
   type: string
 }
-
-const logger = createLogger('OrganisationHandler')
 
 export class OrganisationHandler extends Handler {
   constructor(db: DatabaseClient, blockchain: BlockchainClient) {
@@ -23,8 +21,9 @@ export class OrganisationHandler extends Handler {
     return this.db.models.organisationModel
   }
 
+  private logger = new Logger(OrganisationHandler.name)
+
   async handleUpdate(update: Update) {
-    console.log('parse organisation')
     for (const item of update.dataUpdates) {
       await this.handleSingleUpdate(item)
     }
@@ -59,13 +58,13 @@ export class OrganisationHandler extends Handler {
     const { name, description } = payload
 
     await this.organisationModel.create({ address, name, description })
-    logger.log(`Organisation ${address} created`)
+    this.logger.log(`Organisation ${address} created`)
   }
 
   async updateOrganisation(address: string, payload: OrganisationPayload) {
     const { name, description } = payload
 
     await this.organisationModel.updateOne({ address }, { name, description })
-    logger.log(`Organisation ${address} updated`)
+    this.logger.log(`Organisation ${address} updated`)
   }
 }

@@ -1,5 +1,4 @@
 import { Update, DataUpdate } from '../UpdateParser'
-import { createLogger } from '../Logger'
 import { Entry } from '../Types'
 import config from '../../config'
 import {
@@ -13,13 +12,14 @@ import { bufferToString } from '../Common'
 import { Handler } from './Handler'
 import { DatabaseClient } from '../Database'
 import { BlockchainClient } from '../BlockchainClient'
-
-const logger = createLogger('DappFatherHandler')
+import { Logger } from '../Logger'
 
 export class DappFatherHandler extends Handler {
   constructor(db: DatabaseClient, blockchain: BlockchainClient) {
     super(db, blockchain)
   }
+
+  private logger = new Logger(DappFatherHandler.name)
 
   get supplierModel() {
     return this.db.models.supplierModel
@@ -82,21 +82,21 @@ export class DappFatherHandler extends Handler {
 
   async createSupplier(address: string, whitelisted: boolean) {
     await this.supplierModel.create({ address, devices: [], whitelisted })
-    logger.log(`Supplier ${address} created`)
+    this.logger.log(`Supplier ${address} created`)
   }
 
   async updateSupplier(address: string, whitelisted: boolean) {
     await this.supplierModel.updateOne({ address }, { whitelisted })
-    logger.log(`Supplier ${address} updated`)
+    this.logger.log(`Supplier ${address} updated`)
   }
 
   async createOrganisation(address: string, whitelisted: boolean) {
     await this.organisationModel.create({ address, whitelisted })
-    logger.log(`Organisation ${address} created`)
+    this.logger.log(`Organisation ${address} created`)
   }
 
   async updateOrganisation(address: string, whitelisted: boolean) {
     await this.organisationModel.updateOne({ address }, { whitelisted })
-    logger.log(`Organisation ${address} updated`)
+    this.logger.log(`Organisation ${address} updated`)
   }
 }
