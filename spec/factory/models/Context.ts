@@ -23,11 +23,11 @@ export class Context {
 
   get accounts(): Account[] {
     return [
-      this.dappFather,
+      // this.dappFather,
       ...this.suppliers,
       ...this.devices,
-      ...this.organisations,
-      ...this.users
+      ...this.organisations
+      // ...this.users
     ]
   }
 }

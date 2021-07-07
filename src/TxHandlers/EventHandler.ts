@@ -1,4 +1,4 @@
-import { Update } from '../UpdateParser'
+import { ParsedUpdate } from '../UpdateParser'
 import * as Common from '../Common'
 import { TransactionResponse } from '../../proto/interfaces/waves/node/grpc/TransactionResponse'
 import { Handler } from './Handler'
@@ -22,7 +22,7 @@ export class EventHandler extends Handler {
     return this.db.models.eventModel
   }
 
-  async handleUpdate(update: Update) {
+  async handleUpdate(update: ParsedUpdate) {
     const ids = update.ids.map(Common.normalizeBinaryInput)
     const txes = await this.blockchain.fetchTransactions(ids)
 

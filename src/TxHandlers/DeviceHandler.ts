@@ -1,10 +1,10 @@
-import { DataUpdate, Update } from '../UpdateParser'
-import { Entry } from '../Types'
+import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 import { ACTIVE_KEYWORD, KEY_REGEX } from '../Constants'
 import { Handler } from './Handler'
 import { DatabaseClient } from '../Database'
 import { BlockchainClient } from '../BlockchainClient'
 import { Logger } from '../Logger'
+import { delay } from '../Common'
 
 interface KeyItem {
   id: string
@@ -29,13 +29,13 @@ export class DeviceHandler extends Handler {
     return this.db.models.deviceModel
   }
 
-  async handleUpdate(update: Update) {
-    for (const item of update.dataUpdates) {
+  async handleUpdate(update: ParsedUpdate) {
+    for (const item of update.entries) {
       await this.handleSingleUpdate(item)
     }
   }
 
-  async handleSingleUpdate(item: DataUpdate) {
+  async handleSingleUpdate(item: EntriesForAddress) {
     const update = this.parseProps(item.entries)
     const keyList = this.parseKeyList(item.entries)
 
@@ -79,31 +79,30 @@ export class DeviceHandler extends Handler {
     this.logger.log(`Device ${address} updated`)
   }
 
-  parseKeyList(entries: Entry[]): KeyItem[] {
+  parseKeyList(entries: ParsedEntry[]): KeyItem[] {
     return entries
-      .filter((entry) => KEY_REGEX.test(entry.key ?? ''))
+      .filter((entry) => KEY_REGEX.test(entry.key))
       .map((entry) => ({
-        id: entry.key!.replace('key_', ''),
-        whitelisted: entry.string_value === ACTIVE_KEYWORD
+        id: entry.key.replace('key_', ''),
+        whitelisted: entry.value === ACTIVE_KEYWORD
       }))
   }
 
-  parseProps(entries: Entry[]): any | null {
+  parseProps(entries: ParsedEntry[]): any | null {
     const updates = entries
       .map((entry) => {
-        const key = entry.key ?? ''
-        const { string_value, bool_value } = entry
+        const { key, value } = entry
 
         if (keysMap.strings.includes(key)) {
-          return { [key]: string_value ?? '' }
+          return { [key]: value }
         }
 
         if (keysMap.floats.includes(key)) {
-          return { [key]: Number(string_value ?? '0') }
+          return { [key]: Number(value) }
         }
 
         if (keysMap.json.includes(key)) {
-          const obj = this.tryParse(string_value ?? '')
+          const obj = this.tryParse(value as string)
 
           if (!obj) return this.logger.error('invalid json')
 
@@ -111,7 +110,7 @@ export class DeviceHandler extends Handler {
         }
 
         if (keysMap.booleans.includes(key)) {
-          return { [key]: bool_value ?? false }
+          return { [key]: value }
         }
       })
       .filter((update) => update)

@@ -1,9 +1,9 @@
 import * as Crypto from '@waves/ts-lib-crypto'
 import { readFileSync } from 'fs'
 import config from '../config'
-import { createLogger } from './Logger'
+import { Logger } from './Logger'
 
-const logger = createLogger('Common')
+const logger = new Logger('Common')
 
 // Redis transforms JS buffer into this
 interface JSONBuffer {

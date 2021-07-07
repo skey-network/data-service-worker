@@ -24,6 +24,8 @@ export class OrganisationHandler extends Handler {
   private logger = new Logger(OrganisationHandler.name)
 
   async handleUpdate(update: Update) {
+    this.logger.debug(OrganisationHandler.name, 'handle height', update.height)
+
     for (const item of update.dataUpdates) {
       await this.handleSingleUpdate(item)
     }

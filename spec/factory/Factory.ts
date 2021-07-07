@@ -32,7 +32,12 @@ export class Factory {
   }
 
   async broadcast() {
-    await Promise.all(this.ctx.accounts.map((acc) => acc.broadcast()))
+    // await this.ctx.dappFather.broadcast()
+    await Promise.all(this.ctx.organisations.map((acc) => acc.broadcast()))
+    await Promise.all(this.ctx.suppliers.map((acc) => acc.broadcast()))
+    await Promise.all(this.ctx.devices.map((acc) => acc.broadcast()))
+    // await Promise.all(this.ctx.users.map((acc) => acc.broadcast()))
+    // await Promise.all(this.ctx.devices.map((acc) => acc.broadcast()))
   }
 
   async sponsorAccounts() {

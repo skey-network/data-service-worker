@@ -29,6 +29,8 @@ export class SupplierHandler extends Handler {
   }
 
   async handleUpdate(update: Update) {
+    this.logger.debug(SupplierHandler.name, 'handle height', update.height)
+
     for (const item of update.dataUpdates) {
       await this.handleSingleUpdate(item)
     }

@@ -2,10 +2,8 @@ import * as Crypto from '@waves/ts-lib-crypto'
 import { AssetInfoResponse, SubscribeEvent, SubscribeRequest } from './Types'
 import { delay } from './Common'
 import { TransactionResponse } from '../proto/interfaces/waves/node/grpc/TransactionResponse'
-import { createLogger } from './Logger'
 import { GrpcClient } from './GrpcClient'
-
-const logger = createLogger('Blockchain')
+import { Logger } from './Logger'
 
 export class BlockchainClient {
   client: GrpcClient
@@ -13,6 +11,8 @@ export class BlockchainClient {
   constructor(client: GrpcClient) {
     this.client = client
   }
+
+  private logger = new Logger(BlockchainClient.name)
 
   fetchAsset(assetId: string) {
     return new Promise<AssetInfoResponse | null>((resolve) => {
@@ -49,7 +49,7 @@ export class BlockchainClient {
     return new Promise<number | null>((resolve) => {
       this.client.blocksApiClient.GetCurrentHeight({}, (err, res) => {
         if (err || !res) {
-          logger.error(err)
+          this.logger.error(err)
           return resolve(null)
         }
 

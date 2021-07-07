@@ -38,7 +38,7 @@ export class BlockchainContainer extends Container {
   }
 
   async waitToBeResponsive() {
-    const treshold = 5
+    const treshold = 10
     const interval = 1000
 
     return new Promise<void>((resolve) => {

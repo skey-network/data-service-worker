@@ -20,6 +20,7 @@ export interface Config {
     apiPort: number
   }
   redis: {
+    queue: string
     host: string
     port: number
   }
