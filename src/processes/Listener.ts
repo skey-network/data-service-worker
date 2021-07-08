@@ -1,18 +1,14 @@
-import { BlockchainClient } from './BlockchainClient'
-import { Config } from './Config'
-import { GrpcClient } from './GrpcClient'
+import { BlockchainClient } from '../BlockchainClient'
+import { Config } from '../Config'
+import { GrpcClient } from '../GrpcClient'
 import Queue from 'bull'
-import { ParsedUpdate, UpdateParser } from './UpdateParser'
-import { SubscribeEvent } from './Types'
-import { DeviceHandler } from './TxHandlers/DeviceHandler'
-import { writeFileSync } from 'fs'
+import { parseUpdate } from '../UpdateParser'
+import { IProcess, JobData, SubscribeEvent } from '../Types'
+import { DeviceHandler } from '../TxHandlers/DeviceHandler'
+import { SupplierHandler } from '../TxHandlers/SupplierHandler'
+import { OrganisationHandler } from '../TxHandlers/OrganisationHandler'
 
-export interface JobData {
-  handler: string
-  update: any
-}
-
-export class Listener {
+export class Listener implements IProcess {
   config: Config
   blockchain: BlockchainClient
   grpc: GrpcClient
@@ -28,7 +24,7 @@ export class Listener {
     this.queue = new Queue(queue, { redis: { host, port } })
   }
 
-  async startListener() {
+  async init() {
     const height = await this.blockchain.fetchHeight()
     if (!height) return console.error('Cannot fetch height')
 
@@ -38,31 +34,18 @@ export class Listener {
     ).cancel
   }
 
-  async stopListener() {
-    return await this.cancelListener()
-  }
-
   async destroy() {
-    await this.stopListener()
+    await this.cancelListener()
     await this.queue.close()
   }
 
   // TODO
   async handleChunk(chunk: SubscribeEvent) {
-    writeFileSync(
-      `./height_${chunk.update?.height ?? 0}_${Date.now()}`,
-      JSON.stringify(chunk)
-    )
-
-    const parser = new UpdateParser(chunk)
-    const update = parser.parse(chunk)
+    const update = parseUpdate(chunk)
     if (!update) return
 
-    writeFileSync(
-      `./parsed_${chunk.update?.height ?? 0}_${Date.now()}`,
-      JSON.stringify(update)
-    )
-
     await this.queue.add({ update, handler: DeviceHandler.name })
+    await this.queue.add({ update, handler: SupplierHandler.name })
+    await this.queue.add({ update, handler: OrganisationHandler.name })
   }
 }

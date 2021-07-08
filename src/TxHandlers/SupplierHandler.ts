@@ -1,8 +1,6 @@
-import { DataUpdate, Update } from '../UpdateParser'
-import { Entry } from '../Types'
+import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 import { ACTIVE_KEYWORD, DEVICE_PREFIX, DEVICE_REGEX } from '../Constants'
 import { Logger } from '../Logger'
-import { bufferToString } from '../Common'
 import { Handler } from './Handler'
 import { DatabaseClient } from '../Database'
 import { BlockchainClient } from '../BlockchainClient'
@@ -28,19 +26,19 @@ export class SupplierHandler extends Handler {
     return this.db.models.supplierModel
   }
 
-  async handleUpdate(update: Update) {
+  async handleUpdate(update: ParsedUpdate) {
     this.logger.debug(SupplierHandler.name, 'handle height', update.height)
 
-    for (const item of update.dataUpdates) {
-      await this.handleSingleUpdate(item)
+    for (const entries of update.entries) {
+      await this.handleSingleUpdate(entries)
     }
   }
 
-  async handleSingleUpdate(item: DataUpdate) {
-    const address = bufferToString(item.address ?? [])
-    const payload = this.parseEntries(item.entries)
+  async handleSingleUpdate(item: EntriesForAddress) {
+    const { address, entries } = item
+    const payload = this.parseEntries(entries)
 
-    const exists = await this.supplierModel.exists({ address })
+    const exists = await this.supplierModel.exists({ address: item.address })
 
     if (exists) {
       return await this.updateSupplier(address, payload)
@@ -89,20 +87,20 @@ export class SupplierHandler extends Handler {
     this.logger.log(`Supplier ${address} updated`)
   }
 
-  parseEntries(entries: Entry[]): SupplierPayload {
+  parseEntries(entries: ParsedEntry[]): SupplierPayload {
     const fields = ['name', 'description', 'type']
 
     const info = Object.fromEntries(
       entries
-        .filter((entry) => fields.includes(entry.key!))
-        .map((entry) => [entry.key, entry.string_value])
+        .filter(({ key }) => fields.includes(key))
+        .map(({ key, value }) => [key, value])
     )
 
     const list = entries
-      .filter((entry) => DEVICE_REGEX.test(entry.key!))
-      .map((entry) => ({
-        address: entry.key?.replace(DEVICE_PREFIX, '') ?? '',
-        whitelisted: ACTIVE_KEYWORD === entry.string_value
+      .filter(({ key }) => DEVICE_REGEX.test(key))
+      .map(({ key, value }) => ({
+        address: key.replace(DEVICE_PREFIX, '') ?? '',
+        whitelisted: ACTIVE_KEYWORD === value
       }))
 
     return { ...info, devices: list }

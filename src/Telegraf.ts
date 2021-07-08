@@ -7,7 +7,5 @@ const bot = new Telegraf(token)
 export const message = async (content: string) => {
   try {
     await bot.telegram.sendMessage(chatId, content)
-  } catch (err) {
-    
-  }
+  } catch (err) {}
 }

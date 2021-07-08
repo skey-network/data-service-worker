@@ -8,6 +8,14 @@ import { Organisation } from './models/Organisation'
 import { Device } from './models/Device'
 import { User } from './models/User'
 
+export const createBundle = async (config: Config, amount: number) => {
+  const factory = new Factory(config)
+  factory.createBundle(amount)
+  await factory.sponsorAccounts()
+  await factory.broadcast()
+  return factory.ctx
+}
+
 export class Factory {
   config: Config
   ctx: Context
@@ -32,12 +40,7 @@ export class Factory {
   }
 
   async broadcast() {
-    // await this.ctx.dappFather.broadcast()
-    await Promise.all(this.ctx.organisations.map((acc) => acc.broadcast()))
-    await Promise.all(this.ctx.suppliers.map((acc) => acc.broadcast()))
-    await Promise.all(this.ctx.devices.map((acc) => acc.broadcast()))
-    // await Promise.all(this.ctx.users.map((acc) => acc.broadcast()))
-    // await Promise.all(this.ctx.devices.map((acc) => acc.broadcast()))
+    await Promise.all(this.ctx.accounts.map((acc) => acc.broadcast()))
   }
 
   async sponsorAccounts() {

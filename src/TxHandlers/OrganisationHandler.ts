@@ -1,15 +1,13 @@
-import { Update, DataUpdate } from '../UpdateParser'
-import { bufferToString } from '../Common'
-import { Entry } from '../Types'
+import { ParsedUpdate, EntriesForAddress, ParsedEntry } from '../UpdateParser'
 import { Handler } from './Handler'
 import { DatabaseClient } from '../Database'
 import { BlockchainClient } from '../BlockchainClient'
 import { Logger } from '../Logger'
 
 interface OrganisationPayload {
-  name: string
-  description: string
-  type: string
+  name?: string
+  description?: string
+  type?: string
 }
 
 export class OrganisationHandler extends Handler {
@@ -23,17 +21,17 @@ export class OrganisationHandler extends Handler {
 
   private logger = new Logger(OrganisationHandler.name)
 
-  async handleUpdate(update: Update) {
+  async handleUpdate(update: ParsedUpdate) {
     this.logger.debug(OrganisationHandler.name, 'handle height', update.height)
 
-    for (const item of update.dataUpdates) {
-      await this.handleSingleUpdate(item)
+    for (const entries of update.entries) {
+      await this.handleSingleUpdate(entries)
     }
   }
 
-  async handleSingleUpdate(item: DataUpdate) {
-    const address = bufferToString(item.address ?? [])
-    const payload = this.parseEntries(item.entries)
+  async handleSingleUpdate(item: EntriesForAddress) {
+    const { address, entries } = item
+    const payload = this.parseEntries(entries)
 
     const exists = await this.organisationModel.exists({ address })
     const func = exists ? this.updateOrganisation : this.createOrganisation
@@ -41,13 +39,13 @@ export class OrganisationHandler extends Handler {
     return await func.bind(this)(address, payload)
   }
 
-  parseEntries(entries: Entry[]): OrganisationPayload {
+  parseEntries(entries: ParsedEntry[]): OrganisationPayload {
     const fields = ['name', 'description', 'type']
 
     return Object.fromEntries(
       entries
-        .filter((entry) => fields.includes(entry.key!))
-        .map((entry) => [entry.key, entry.string_value])
+        .filter(({ key }) => fields.includes(key))
+        .map(({ key, value }) => [key, value])
     )
   }
 

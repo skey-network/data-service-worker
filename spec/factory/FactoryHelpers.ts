@@ -2,7 +2,7 @@ export const randInt = (min: number, max: number) => Math.floor(Math.random() * 
 
 export const randElement = <T>(arr: T[]) => arr[randInt(0, arr.length - 1)]
 
-export const randBool = () => Math.random() < 0.5
+export const randBool = (): boolean => Math.random() < 0.5
 
 export const randTimestamp = () => {
   const day = 3600 * 24 * 1000

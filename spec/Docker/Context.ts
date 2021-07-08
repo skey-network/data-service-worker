@@ -1,7 +1,34 @@
+import { Config } from '../../src/Config'
 import { BlockchainContainer } from './BlockchainContainer'
 import { Container } from './Container'
 import { DatabaseContainer } from './DatabaseContainer'
 import { RedisContainer } from './RedisContainer'
+
+export const createConfig = (e2e: E2eContext): Config => ({
+  app: { logs: false },
+  blockchain: {
+    dappFatherAddress: '3MLiRijBGgFLZeXMm6DxHCAVkRnCTxS7hog',
+    nodeUrl: `http://localhost:${e2e.blockchain.ports.http}`,
+    chainId: 'R'
+  },
+  db: {
+    name: 'admin',
+    host: 'localhost',
+    port: e2e.db.port,
+    username: 'root',
+    password: 'password'
+  },
+  grpc: {
+    host: 'localhost',
+    updatesPort: e2e.blockchain.ports.updates,
+    apiPort: e2e.blockchain.ports.grpc
+  },
+  redis: {
+    queue: 'default',
+    host: 'localhost',
+    port: e2e.redis.port
+  }
+})
 
 export const runContainers = async (containers: Container[]) => {
   await Promise.all(

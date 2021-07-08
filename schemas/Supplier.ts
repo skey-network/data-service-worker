@@ -12,16 +12,19 @@ export class Supplier {
   address: string
 
   @Prop(Boolean)
-  whitelisted?: boolean
+  whitelisted: boolean
 
   @Prop(String)
-  name?: string
+  name: string
 
   @Prop(String)
-  description?: string
+  description: string
 
   @Prop([String])
-  devices?: string[]
+  devices: string[]
+
+  @Prop([String])
+  organisations: string[]
 
   @Prop(Date)
   createdAt: Date

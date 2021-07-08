@@ -12,6 +12,15 @@ export type DeviceType =
   | 'mobile'
   | 'other'
 
+export const deviceTypeValues = Object.freeze([
+  'car barrier',
+  'human barrier',
+  'elevator',
+  'human',
+  'mobile',
+  'other'
+])
+
 @Schema()
 export class PhysicalAddress {
   @Prop(String)
