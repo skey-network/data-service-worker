@@ -1,5 +1,5 @@
 import type * as grpc from '@grpc/grpc-js';
-import type { ServiceDefinition, EnumTypeDefinition, MessageTypeDefinition } from '@grpc/proto-loader';
+import type { MessageTypeDefinition } from '@grpc/proto-loader';
 
 import type { BlockchainApiClient as _waves_node_grpc_BlockchainApiClient, BlockchainApiDefinition as _waves_node_grpc_BlockchainApiDefinition } from './waves/node/grpc/BlockchainApi';
 

@@ -16,32 +16,40 @@ export interface DataUpdate {
 }
 
 export interface Update {
+  height: number
   dataUpdates: DataUpdate[]
   assetUpdates: AssetStateUpdate[]
   balanceUpdates: BalanceUpdate[]
-  ids: Uint8Array[]
+  ids: Buffer[]
 }
 
-export const parseUpdate = (chunk: SubscribeEvent): Update => {
-  const stateUpdates = getStateUpdates(chunk)
+export const parseUpdate = (chunk: SubscribeEvent): Update | null => {
+  try {
+    const stateUpdates = getStateUpdates(chunk)
 
-  return {
-    dataUpdates: getDataUpdates(stateUpdates),
-    assetUpdates: getAssetUpdates(stateUpdates),
-    balanceUpdates: getBalanceUpdates(stateUpdates),
-    ids: getIds(chunk)
+    return {
+      height: chunk.update?.height ?? 0,
+      dataUpdates: getDataUpdates(stateUpdates),
+      assetUpdates: getAssetUpdates(stateUpdates),
+      balanceUpdates: getBalanceUpdates(stateUpdates),
+      ids: getIds(chunk)
+    }
+  } catch (err) {
+    logger.error('Error while parsing update')
+    logger.error(err)
+    return null
   }
 }
 
-export const getIds = (chunk: SubscribeEvent): Uint8Array[] => {
-  return (chunk.update?.append?.transaction_ids ?? []) as Uint8Array[]
+export const getIds = (chunk: SubscribeEvent) => {
+  return (chunk.update?.append?.transaction_ids ?? []) as Buffer[]
 }
 
 export const getStateUpdates = (chunk: SubscribeEvent) => {
   const stateUpdates = chunk.update?.append?.transaction_state_updates
 
   if (!stateUpdates || stateUpdates?.length === 0) {
-    logger.debug('No state updates')
+    // logger.debug('No state updates')
     return []
   }
 
@@ -77,7 +85,7 @@ export const getDataUpdates = (stateUpdates: StateUpdate[]) => {
     const entries = update.data_entries
 
     if (!entries || entries.length === 0) {
-      logger.debug('No data entries')
+      // logger.debug('No data entries')
       return []
     }
 

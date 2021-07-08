@@ -1,6 +1,17 @@
 import * as Crypto from '@waves/ts-lib-crypto'
 import { readFileSync } from 'fs'
 import config from '../config'
+import { createLogger } from './Logger'
+
+const logger = createLogger('Common')
+
+// Redis transforms JS buffer into this
+interface JSONBuffer {
+  type: 'Buffer'
+  data: number[]
+}
+
+type BinaryInput = Buffer | Uint8Array | JSONBuffer | string
 
 export const scripts = {
   device: readFileSync('./artifacts/device.txt', 'utf-8'),
@@ -14,10 +25,30 @@ export const delay = (timeout: number) => {
   })
 }
 
-export const bufferToString = (input?: Crypto.TBinaryIn) => {
-  return Crypto.base58Encode(input ?? [])
+// Depending on whether task is run via redis or main process
+// the input is defferent
+export const normalizeBinaryInput = (input?: BinaryInput) => {
+  if (input instanceof Buffer) return input
+
+  if (input instanceof Uint8Array) return Buffer.from(input)
+
+  if (typeof input === 'string') {
+    return Buffer.from(Crypto.base58Decode(input))
+  }
+
+  if (input?.data) return Buffer.from(input.data)
+
+  logger.error('Unexpected buffer input', input)
+  return Buffer.from([])
 }
 
-export const publicKeyToAddress = (input?: Crypto.TBinaryIn) => {
-  return Crypto.address({ publicKey: input ?? [] }, config().blockchain.chainId)
+export const bufferToString = (input?: BinaryInput) => {
+  return Crypto.base58Encode(normalizeBinaryInput(input))
+}
+
+export const publicKeyToAddress = (input?: BinaryInput) => {
+  return Crypto.address(
+    { publicKey: normalizeBinaryInput(input) },
+    config().blockchain.chainId
+  )
 }

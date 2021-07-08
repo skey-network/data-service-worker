@@ -36,3 +36,15 @@ export const createUri = (options: DatabaseOptions) => {
   const { host, port, name, username, password } = options
   return `mongodb://${username}:${password}@${host}:${port}/${name}`
 }
+
+export const dropAllCollections = async () => {
+  const whitelist = ['system.version', 'system.users', 'events']
+
+  const collections = await mongoose.connection.db.collections()
+
+  const promises = collections
+    .filter((collection) => !whitelist.includes(collection.collectionName))
+    .map((collection) => collection.drop())
+
+  await Promise.all(promises)
+}

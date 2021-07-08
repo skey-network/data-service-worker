@@ -1,14 +1,16 @@
-import * as Crypto from '@waves/ts-lib-crypto'
 import { Update } from '../UpdateParser'
 import { createLogger } from '../Logger'
 import { AssetInfoResponse } from '../Types'
 import * as Blockchain from '../Blockchain'
 import { publicKeyToAddress } from '../Common'
 import { Key } from '../../models/Key'
-import config from '../../config'
 import { bufferToString } from '../Common'
 
 const logger = createLogger('KeyHandler')
+
+const rollbackWarning = (height: number) => {
+  logger.warn(`Cannot fetch asset at height ${height}. There might have been a rollback.`)
+}
 
 export const handleKeyUpdates = async (update: Update) => {
   await handleAssetUpdates(update)
@@ -18,14 +20,12 @@ export const handleKeyUpdates = async (update: Update) => {
 const handleAssetUpdates = async (update: Update) => {
   for (const assetUpdate of update.assetUpdates) {
     const assetId = bufferToString(assetUpdate.after?.asset_id)
+
     const asset = await Blockchain.fetchAsset(assetId)
+    if (!asset) return rollbackWarning(update.height)
 
-    const error = isValidAsset(asset)
-
-    if (error) {
-      logger.debug(error)
-      continue
-    }
+    const validationError = isValidAsset(asset)
+    if (validationError) continue
 
     await save(assetId, asset)
   }
@@ -39,13 +39,12 @@ const handleBalanceUpdates = async (update: Update) => {
   for (const balance of filtered) {
     const assetId = bufferToString(balance.amount_after?.asset_id)
     const owner = bufferToString(balance.address)
-    const asset = await Blockchain.fetchAsset(assetId)
-    const error = isValidAsset(asset)
 
-    if (error) {
-      logger.debug(error)
-      continue
-    }
+    const asset = await Blockchain.fetchAsset(assetId)
+    if (!asset) return rollbackWarning(update.height)
+
+    const error = isValidAsset(asset)
+    if (error) continue
 
     await save(assetId, asset, owner)
   }

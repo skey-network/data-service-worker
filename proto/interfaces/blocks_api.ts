@@ -1,5 +1,5 @@
 import type * as grpc from '@grpc/grpc-js';
-import type { ServiceDefinition, EnumTypeDefinition, MessageTypeDefinition } from '@grpc/proto-loader';
+import type { MessageTypeDefinition } from '@grpc/proto-loader';
 
 import type { BlocksApiClient as _waves_node_grpc_BlocksApiClient, BlocksApiDefinition as _waves_node_grpc_BlocksApiDefinition } from './waves/node/grpc/BlocksApi';
 

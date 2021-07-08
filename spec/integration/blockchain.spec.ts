@@ -21,7 +21,7 @@ describe('Blockchain', () => {
 
     it('returns object', async () => {
       const asset = await Blockchain.fetchAsset(assetId)
-      expect(asset.issuer).toBeDefined()
+      expect(asset!.issuer).toBeDefined()
     })
   })
 
