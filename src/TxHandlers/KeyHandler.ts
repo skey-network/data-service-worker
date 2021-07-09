@@ -1,58 +1,46 @@
-import { Update } from '../UpdateParser'
 import { Logger } from '../Logger'
 import { AssetInfoResponse } from '../Types'
 import { publicKeyToAddress } from '../Common'
-import { bufferToString } from '../Common'
 import { Handler } from './Handler'
-import { DatabaseClient } from '../Database'
-import { BlockchainClient } from '../BlockchainClient'
+import { DatabaseClient } from '../Clients/DatabaseClient'
+import { BlockchainClient } from '../Clients/BlockchainClient'
+import { ParsedUpdate } from '../UpdateParser'
 
 export class KeyHandler extends Handler {
-  constructor(db: DatabaseClient, blockchain: BlockchainClient) {
-    super(db, blockchain)
-  }
-
   private logger = new Logger(KeyHandler.name)
 
   get keyModel() {
     return this.db.models.keyModel
   }
 
-  async handleUpdate(update: Update) {
+  async handleUpdate(update: ParsedUpdate) {
     await this.handleAssetUpdates(update)
     await this.handleBalanceUpdates(update)
   }
 
-  async handleAssetUpdates(update: Update) {
-    for (const assetUpdate of update.assetUpdates) {
-      const assetId = bufferToString(assetUpdate.after?.asset_id)
-
-      const asset = await this.blockchain.fetchAsset(assetId)
+  async handleAssetUpdates(update: ParsedUpdate) {
+    for (const { asset_id } of update.assets) {
+      const asset = await this.blockchain.fetchAsset(asset_id)
       if (!asset) return this.rollbackWarning(update.height)
 
       const validationError = this.isValidAsset(asset)
       if (validationError) continue
 
-      await this.save(assetId, asset)
+      await this.save(asset_id, asset)
     }
   }
 
-  async handleBalanceUpdates(update: Update) {
-    const filtered = update.balanceUpdates.filter(
-      (balance) => balance.amount_after?.amount === '1'
-    )
+  async handleBalanceUpdates(update: ParsedUpdate) {
+    for (const balance of update.balances) {
+      if (balance.amount !== 1) continue
 
-    for (const balance of filtered) {
-      const assetId = bufferToString(balance.amount_after?.asset_id)
-      const owner = bufferToString(balance.address)
-
-      const asset = await this.blockchain.fetchAsset(assetId)
+      const asset = await this.blockchain.fetchAsset(balance.assetId)
       if (!asset) return this.rollbackWarning(update.height)
 
       const error = this.isValidAsset(asset)
       if (error) continue
 
-      await this.save(assetId, asset, owner)
+      await this.save(balance.assetId, asset, balance.address)
     }
   }
 

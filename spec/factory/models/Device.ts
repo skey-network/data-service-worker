@@ -81,6 +81,23 @@ export class Device extends Account {
     ])
   }
 
+  async whiteListKeys(ids: string[]) {
+    await this.modifyListItems('key', ids, true, this.keys)
+  }
+
+  async setSupplier(address: string) {
+    await this.lib.insertData(
+      [
+        { key: 'supplier', value: address },
+        { key: 'owner', value: address }
+      ],
+      this.seed
+    )
+
+    this.supplier = address
+    this.owner = address
+  }
+
   dataEntries(): Entry[] {
     return Object.entries(this.data).map(([key, value]) => {
       if (keysMap.strings.includes(key)) {

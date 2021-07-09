@@ -1,7 +1,7 @@
 import '../setup'
 
 import * as helper from '../helper'
-import * as Database from '../../src/Database'
+import * as Database from '../../src/Clients/DatabaseClient'
 import { Supplier } from '../../models/Supplier'
 import { handleSupplierUpdates } from '../../src/TxHandlers/SupplierHandler'
 

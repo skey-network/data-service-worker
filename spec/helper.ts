@@ -1,6 +1,6 @@
 import { getInstance } from 'skey-lib'
 import config from '../config'
-import * as Blockchain from '../src/BlockchainClient'
+import * as Blockchain from '../src/Clients/BlockchainClient'
 import { ParsedUpdate, parseUpdate } from '../src/UpdateParser'
 import * as Transactions from '@waves/waves-transactions'
 

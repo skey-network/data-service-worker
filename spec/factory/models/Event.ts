@@ -8,6 +8,7 @@ export class Event extends Entity {
   supplier: string
   key: string
   action: string
+  device: string
 
   constructor(senderSeed: string, supplier: string, key: string, config: Config) {
     super(config)

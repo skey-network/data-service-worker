@@ -21,4 +21,12 @@ export class DappFather extends Account {
       )
     ])
   }
+
+  async whitelistSuppliers(ids: string[]) {
+    await this.modifyListItems('supplier', ids, true, this.suppliers)
+  }
+
+  async whitelistOrganisations(ids: string[]) {
+    await this.modifyListItems('org', ids, true, this.organisations)
+  }
 }

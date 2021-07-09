@@ -1,7 +1,7 @@
 import { Job } from 'bull'
 import { delay } from '../../src/Common'
 import { Config } from '../../src/Config'
-import { Listener } from '../../src/processes/Listener'
+import { Listener } from '../../src/Processes/Listener'
 import { JobData } from '../../src/Types'
 import { ParsedUpdate } from '../../src/UpdateParser'
 import * as Context from '../Docker/Context'

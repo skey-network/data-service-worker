@@ -27,4 +27,8 @@ export class Supplier extends Account {
       this.lib.setScript(this.script, this.seed)
     ])
   }
+
+  async whitelistDevices(ids: string[]) {
+    await this.modifyListItems('device', ids, true, this.devices)
+  }
 }

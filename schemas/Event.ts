@@ -15,9 +15,6 @@ export class Event {
   sender?: string
 
   @Prop(String)
-  device?: string
-
-  @Prop(String)
   assetId?: string
 
   @Prop(String)

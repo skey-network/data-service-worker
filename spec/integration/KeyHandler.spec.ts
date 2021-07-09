@@ -1,6 +1,6 @@
 import '../setup'
 
-import * as Database from '../../src/Database'
+import * as Database from '../../src/Clients/DatabaseClient'
 import * as helper from '../helper'
 import { handleKeyUpdates } from '../../src/TxHandlers/KeyHandler'
 import { Helpers } from '../factory'

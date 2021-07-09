@@ -1,9 +1,9 @@
 import * as grpc from '@grpc/grpc-js'
 import * as protoLoader from '@grpc/proto-loader'
 import { readdirSync } from 'fs'
-import type { BlocksApiClient, BlockchainUpdatesApiClient } from './Types'
-import { AssetsApiClient } from '../proto/interfaces/waves/node/grpc/AssetsApi'
-import { TransactionsApiClient } from '../proto/interfaces/waves/node/grpc/TransactionsApi'
+import type { BlocksApiClient, BlockchainUpdatesApiClient } from '../Types'
+import { AssetsApiClient } from '../../proto/interfaces/waves/node/grpc/AssetsApi'
+import { TransactionsApiClient } from '../../proto/interfaces/waves/node/grpc/TransactionsApi'
 
 export interface GrpcConnectionInput {
   host: string

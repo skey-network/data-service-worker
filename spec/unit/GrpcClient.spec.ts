@@ -2,7 +2,7 @@ import '../setup'
 
 import * as protoLoader from '@grpc/proto-loader'
 import * as grpc from '@grpc/grpc-js'
-import * as GrpcClient from '../../src/GrpcClient'
+import * as GrpcClient from '../../src/Clients/GrpcClient'
 import config from '../../config'
 
 describe('GrpcClient', () => {

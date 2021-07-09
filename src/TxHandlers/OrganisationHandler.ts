@@ -1,7 +1,7 @@
 import { ParsedUpdate, EntriesForAddress, ParsedEntry } from '../UpdateParser'
 import { Handler } from './Handler'
-import { DatabaseClient } from '../Database'
-import { BlockchainClient } from '../BlockchainClient'
+import { DatabaseClient } from '../Clients/DatabaseClient'
+import { BlockchainClient } from '../Clients/BlockchainClient'
 import { Logger } from '../Logger'
 
 interface OrganisationPayload {
@@ -11,10 +11,6 @@ interface OrganisationPayload {
 }
 
 export class OrganisationHandler extends Handler {
-  constructor(db: DatabaseClient, blockchain: BlockchainClient) {
-    super(db, blockchain)
-  }
-
   get organisationModel() {
     return this.db.models.organisationModel
   }
@@ -50,14 +46,15 @@ export class OrganisationHandler extends Handler {
   }
 
   async createOrganisation(address: string, payload: OrganisationPayload) {
-    if (payload.type !== 'organisation') {
-      // return logger.debug('invalid type')
-      return
-    }
-
+    if (payload.type !== 'organisation') return
     const { name, description } = payload
 
-    await this.organisationModel.create({ address, name, description })
+    await this.organisationModel.create({
+      address,
+      name,
+      description,
+      whitelisted: false
+    })
     this.logger.log(`Organisation ${address} created`)
   }
 

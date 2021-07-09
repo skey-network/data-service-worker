@@ -22,6 +22,11 @@ export class Key extends Entity {
   }
 
   async broadcast() {
-    this.assetId = await this.lib.generateKey(this.device, this.validTo, this.issuerSeed)
+    this.assetId = await this.lib.generateKey(
+      this.device,
+      this.validTo,
+      this.issuerSeed,
+      this.name
+    )
   }
 }

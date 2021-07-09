@@ -1,6 +1,29 @@
+import * as Crypto from '@waves/ts-lib-crypto'
 import * as Common from '../../src/Common'
 
 describe('Common', () => {
+  // describe('publicKeyToAddress', () => {
+  //   const cases = [
+  //     {
+  //       toString: () => 'case 1',
+  //       input: ['2c1rWn6HJjgjCgqNETC4YiEE3AKw', 'R'],
+  //       expected: '3M4BrYgdrVAQTNnM783HfkXBmQe9uwXrKAx'
+  //     },
+  //     {
+  //       toString: () => 'case 2',
+  //       input: ['2XYY79KkfNdK8NWQ8mfuChRUd7eH', 'R'],
+  //       expected: '3MM2pyHZJKdxYVSqRLdrJQweb9ckhvqLzEr'
+  //     }
+  //   ]
+
+  //   it.each(cases)('%s', ({ input, expected }) => {
+  //     const hash = Buffer.from(Crypto.base58Decode(input[0]))
+  //     const result = Common.publicKeyHashToAddress(hash, input[1])
+
+  //     expect(result).toBe(expected)
+  //   })
+  // })
+
   describe('scripts', () => {
     it('are defined', () => {
       expect(Common.scripts.device.length)

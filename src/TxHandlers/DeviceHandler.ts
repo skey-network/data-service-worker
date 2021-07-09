@@ -1,10 +1,9 @@
 import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 import { ACTIVE_KEYWORD, KEY_REGEX } from '../Constants'
 import { Handler } from './Handler'
-import { DatabaseClient } from '../Database'
-import { BlockchainClient } from '../BlockchainClient'
+import { DatabaseClient } from '../Clients/DatabaseClient'
+import { BlockchainClient } from '../Clients/BlockchainClient'
 import { Logger } from '../Logger'
-import { delay } from '../Common'
 
 interface KeyItem {
   id: string
@@ -19,10 +18,6 @@ const keysMap = Object.freeze({
 })
 
 export class DeviceHandler extends Handler {
-  constructor(db: DatabaseClient, blockchain: BlockchainClient) {
-    super(db, blockchain)
-  }
-
   private logger = new Logger(DeviceHandler.name)
 
   get deviceModel() {
@@ -62,14 +57,14 @@ export class DeviceHandler extends Handler {
 
     const $set = update
     const $pull = { keys: { $in: blacklisted } }
-    const $push = { keys: { $each: whitelisted } }
+    const $addToSet = { keys: { $each: whitelisted } }
 
     if (update) {
       await this.deviceModel.updateOne({ address }, { $set })
     }
 
     if (whitelisted.length) {
-      await this.deviceModel.updateOne({ address }, { $push })
+      await this.deviceModel.updateOne({ address }, { $addToSet })
     }
 
     if (blacklisted.length) {
@@ -81,18 +76,16 @@ export class DeviceHandler extends Handler {
 
   parseKeyList(entries: ParsedEntry[]): KeyItem[] {
     return entries
-      .filter((entry) => KEY_REGEX.test(entry.key))
-      .map((entry) => ({
-        id: entry.key.replace('key_', ''),
-        whitelisted: entry.value === ACTIVE_KEYWORD
+      .filter(({ key }) => KEY_REGEX.test(key))
+      .map(({ key, value }) => ({
+        id: key.replace('key_', ''),
+        whitelisted: value === ACTIVE_KEYWORD
       }))
   }
 
   parseProps(entries: ParsedEntry[]): any | null {
     const updates = entries
-      .map((entry) => {
-        const { key, value } = entry
-
+      .map(({ key, value }) => {
         if (keysMap.strings.includes(key)) {
           return { [key]: value }
         }

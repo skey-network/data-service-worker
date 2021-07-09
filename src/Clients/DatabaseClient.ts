@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { createModels, Models } from '../schemas/Schemas'
+import { createModels, Models } from '../../schemas/Schemas'
 
 export interface ConnectionParams {
   host: string

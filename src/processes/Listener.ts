@@ -1,12 +1,15 @@
-import { BlockchainClient } from '../BlockchainClient'
+import { BlockchainClient } from '../Clients/BlockchainClient'
 import { Config } from '../Config'
-import { GrpcClient } from '../GrpcClient'
+import { GrpcClient } from '../Clients/GrpcClient'
 import Queue from 'bull'
 import { parseUpdate } from '../UpdateParser'
 import { IProcess, JobData, SubscribeEvent } from '../Types'
 import { DeviceHandler } from '../TxHandlers/DeviceHandler'
 import { SupplierHandler } from '../TxHandlers/SupplierHandler'
 import { OrganisationHandler } from '../TxHandlers/OrganisationHandler'
+import { DappFatherHandler } from '../TxHandlers/DappFatherHandler'
+import { KeyHandler } from '../TxHandlers/KeyHandler'
+import { EventHandler } from '../TxHandlers/EventHandler'
 
 export class Listener implements IProcess {
   config: Config
@@ -39,13 +42,15 @@ export class Listener implements IProcess {
     await this.queue.close()
   }
 
-  // TODO
   async handleChunk(chunk: SubscribeEvent) {
     const update = parseUpdate(chunk)
     if (!update) return
 
-    await this.queue.add({ update, handler: DeviceHandler.name })
+    await this.queue.add({ update, handler: DappFatherHandler.name })
     await this.queue.add({ update, handler: SupplierHandler.name })
     await this.queue.add({ update, handler: OrganisationHandler.name })
+    await this.queue.add({ update, handler: DeviceHandler.name })
+    await this.queue.add({ update, handler: KeyHandler.name })
+    await this.queue.add({ update, handler: EventHandler.name })
   }
 }

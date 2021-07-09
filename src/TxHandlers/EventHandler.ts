@@ -2,8 +2,8 @@ import { ParsedUpdate } from '../UpdateParser'
 import * as Common from '../Common'
 import { TransactionResponse } from '../../proto/interfaces/waves/node/grpc/TransactionResponse'
 import { Handler } from './Handler'
-import { DatabaseClient } from '../Database'
-import { BlockchainClient } from '../BlockchainClient'
+import { DatabaseClient } from '../Clients/DatabaseClient'
+import { BlockchainClient } from '../Clients/BlockchainClient'
 import { Logger } from '../Logger'
 
 const INT = 4
@@ -12,10 +12,6 @@ const BYTE = 1
 type PreIncrement = (val: number) => number
 
 export class EventHandler extends Handler {
-  constructor(db: DatabaseClient, blockchain: BlockchainClient) {
-    super(db, blockchain)
-  }
-
   private logger = new Logger(EventHandler.name)
 
   get eventModel() {
@@ -44,7 +40,6 @@ export class EventHandler extends Handler {
     const sender = Common.publicKeyToAddress(
       itx.transaction?.transaction?.sender_public_key
     )
-    const device = Common.bufferToString(invoke.d_app?.public_key_hash)
 
     const binData = this.parseBinaryData(invoke.function_call as Buffer)
     if (!binData) return
@@ -52,7 +47,6 @@ export class EventHandler extends Handler {
     const obj = {
       txHash,
       sender,
-      device,
       assetId: binData.assetId,
       action: binData.action,
       status: itx.application_status

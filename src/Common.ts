@@ -52,3 +52,11 @@ export const publicKeyToAddress = (input?: BinaryInput) => {
     config().blockchain.chainId
   )
 }
+
+// export const publicKeyHashToAddress = (hash: Buffer, chainId: string) => {
+//   const entity = Buffer.from([1])
+//   const id = Buffer.from([chainId.charCodeAt(0)])
+//   const sum = Buffer.concat([entity, id, hash])
+//   const checksum = Crypto.keccak(Crypto.blake2b(sum)).slice(0, 4)
+//   return Crypto.base58Encode(Buffer.concat([sum, checksum]))
+// }

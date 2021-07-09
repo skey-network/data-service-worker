@@ -1,6 +1,6 @@
 import '../setup'
 
-import * as Database from '../../src/Database'
+import * as Database from '../../src/Clients/DatabaseClient'
 import { Factory } from '../factory'
 
 import { Device } from '../../models/Device'

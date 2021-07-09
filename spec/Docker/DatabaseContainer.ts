@@ -1,6 +1,6 @@
 import { Container } from './Container'
 import { connect } from 'mongodb'
-import { DatabaseClient } from '../../src/Database'
+import { DatabaseClient } from '../../src/Clients/DatabaseClient'
 
 export class DatabaseContainer extends Container {
   static readonly portStartIndex = 8100

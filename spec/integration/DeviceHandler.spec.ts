@@ -1,7 +1,7 @@
 import '../setup'
 
 import { Factory, Helpers, Types } from '../factory'
-import * as Database from '../../src/Database'
+import * as Database from '../../src/Clients/DatabaseClient'
 import * as helper from '../helper'
 import { handleDeviceUpdates } from '../../src/TxHandlers/DeviceHandler'
 import { Device } from '../../models/Device'

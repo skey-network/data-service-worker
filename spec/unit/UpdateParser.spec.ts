@@ -161,6 +161,86 @@ describe('has required data', () => {
   })
 })
 
+describe('getBalanceUpdates', () => {
+  const cases = [
+    {
+      toString: () => 'empty',
+      input: [],
+      expected: []
+    },
+    {
+      toString: () => 'basic example',
+      input: [
+        {
+          balances: [
+            {
+              address: Buffer.from([1, 2]),
+              amount_after: {
+                asset_id: Buffer.from([1, 2])
+              }
+            },
+            {
+              address: Buffer.from([3, 4]),
+              amount_after: {
+                asset_id: Buffer.from([3, 4])
+              }
+            }
+          ]
+        },
+        {
+          balances: []
+        },
+        {}
+      ],
+      expected: [
+        {
+          address: '5T',
+          assetId: '5T'
+        },
+        {
+          address: 'EK',
+          assetId: 'EK'
+        }
+      ]
+    }
+  ]
+
+  it.each(cases)('%s', ({ input, expected }) => {
+    expect(UpdateParser.getBalanceUpdates(input)).toEqual(expected)
+  })
+})
+
+describe('getAssetUpdates', () => {
+  const cases = [
+    {
+      toString: () => 'empty',
+      input: [],
+      expected: []
+    },
+    {
+      toString: () => 'basic example',
+      input: [
+        {
+          assets: [{ after: 1 }, { after: 2 }]
+        },
+        {
+          assets: [{ after: 3 }]
+        },
+        {
+          assets: []
+        },
+        {}
+      ],
+      expected: [1, 2, 3]
+    }
+  ]
+
+  it.each(cases)('%s', ({ input, expected }) => {
+    const result = UpdateParser.getAssetUpdates(input as any)
+    expect(result).toEqual(expected)
+  })
+})
+
 describe('parseEntry', () => {
   const cases = [
     {
@@ -180,7 +260,7 @@ describe('parseEntry', () => {
       },
       expected: {
         key: 'int',
-        value: BigInt(123123)
+        value: 123123
       }
     },
     {

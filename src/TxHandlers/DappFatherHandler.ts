@@ -1,5 +1,3 @@
-import { Update, DataUpdate } from '../UpdateParser'
-import { Entry } from '../Types'
 import config from '../../config'
 import {
   ACTIVE_KEYWORD,
@@ -8,17 +6,13 @@ import {
   ORGANISATION_REGEX,
   ORGANISATION_PREFIX
 } from '../Constants'
-import { bufferToString } from '../Common'
 import { Handler } from './Handler'
-import { DatabaseClient } from '../Database'
-import { BlockchainClient } from '../BlockchainClient'
+import { DatabaseClient } from '../Clients/DatabaseClient'
+import { BlockchainClient } from '../Clients/BlockchainClient'
 import { Logger } from '../Logger'
+import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 
 export class DappFatherHandler extends Handler {
-  constructor(db: DatabaseClient, blockchain: BlockchainClient) {
-    super(db, blockchain)
-  }
-
   private logger = new Logger(DappFatherHandler.name)
 
   get supplierModel() {
@@ -29,35 +23,30 @@ export class DappFatherHandler extends Handler {
     return this.db.models.organisationModel
   }
 
-  async handleUpdate(update: Update) {
-    for (const item of update.dataUpdates) {
-      await this.handleSingleUpdate(item)
+  async handleUpdate(update: ParsedUpdate) {
+    for (const entries of update.entries) {
+      await this.handleSingleUpdate(entries)
     }
   }
 
-  async handleSingleUpdate(item: DataUpdate) {
+  async handleSingleUpdate({ address, entries }: EntriesForAddress) {
     const { dappFatherAddress } = config().blockchain
-    const address = bufferToString(item.address)
+    this.logger.debug('dappFather address', dappFatherAddress)
+    this.logger.debug('entry address', dappFatherAddress)
 
-    if (address !== dappFatherAddress) {
-      return
-      // return logger.debug('address is not dapp father')
-    }
+    if (address !== dappFatherAddress) return
 
-    for (const entry of item.entries) {
+    for (const entry of entries) {
       await this.handleSupplierEntry(entry)
       await this.handleOrganisationEntry(entry)
     }
   }
 
-  async handleSupplierEntry(entry: Entry) {
-    if (!SUPPLIER_REGEX.test(entry.key ?? '')) {
-      return
-      // return logger.debug('invalid key')
-    }
+  async handleSupplierEntry({ key, value }: ParsedEntry) {
+    if (!SUPPLIER_REGEX.test(key)) return
 
-    const address = entry.key!.replace(SUPPLIER_PREFIX, '')
-    const whitelisted = entry.string_value === ACTIVE_KEYWORD
+    const address = key.replace(SUPPLIER_PREFIX, '')
+    const whitelisted = value === ACTIVE_KEYWORD
 
     const exists = await this.supplierModel.exists({ address })
 
@@ -65,14 +54,11 @@ export class DappFatherHandler extends Handler {
     return await func.bind(this)(address, whitelisted)
   }
 
-  async handleOrganisationEntry(entry: Entry) {
-    if (!ORGANISATION_REGEX.test(entry.key ?? '')) {
-      return
-      // return logger.debug('invalid key')
-    }
+  async handleOrganisationEntry({ key, value }: ParsedEntry) {
+    if (!ORGANISATION_REGEX.test(key)) return
 
-    const address = entry.key!.replace(ORGANISATION_PREFIX, '')
-    const whitelisted = entry.string_value === ACTIVE_KEYWORD
+    const address = key.replace(ORGANISATION_PREFIX, '')
+    const whitelisted = value === ACTIVE_KEYWORD
 
     const exists = await this.organisationModel.exists({ address })
 
@@ -81,7 +67,12 @@ export class DappFatherHandler extends Handler {
   }
 
   async createSupplier(address: string, whitelisted: boolean) {
-    await this.supplierModel.create({ address, devices: [], whitelisted })
+    await this.supplierModel.create({
+      address,
+      devices: [],
+      organisations: [],
+      whitelisted
+    })
     this.logger.log(`Supplier ${address} created`)
   }
 
@@ -91,7 +82,7 @@ export class DappFatherHandler extends Handler {
   }
 
   async createOrganisation(address: string, whitelisted: boolean) {
-    await this.organisationModel.create({ address, whitelisted })
+    await this.organisationModel.create({ address, whitelisted, users: [] })
     this.logger.log(`Organisation ${address} created`)
   }
 

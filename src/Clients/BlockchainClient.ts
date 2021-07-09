@@ -1,9 +1,9 @@
 import * as Crypto from '@waves/ts-lib-crypto'
-import { AssetInfoResponse, SubscribeEvent, SubscribeRequest } from './Types'
-import { delay } from './Common'
-import { TransactionResponse } from '../proto/interfaces/waves/node/grpc/TransactionResponse'
+import { AssetInfoResponse, SubscribeEvent, SubscribeRequest } from '../Types'
+import { delay } from '../Common'
+import { TransactionResponse } from '../../proto/interfaces/waves/node/grpc/TransactionResponse'
 import { GrpcClient } from './GrpcClient'
-import { Logger } from './Logger'
+import { Logger } from '../Logger'
 
 export class BlockchainClient {
   client: GrpcClient

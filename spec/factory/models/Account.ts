@@ -3,6 +3,15 @@ import faker from 'faker'
 import { Config } from '../../../src/Config'
 import { Entity } from './Entity'
 
+export const pushUniq = <T>(items: T[], arr: T[]) => {
+  items.forEach((item) => {
+    const exists = arr.findIndex((x) => x === item) !== -1
+    if (exists) return
+
+    arr.push(item)
+  })
+}
+
 export abstract class Account extends Entity {
   address: string
   seed: string
@@ -21,5 +30,17 @@ export abstract class Account extends Entity {
 
   async broadcast() {
     throw new Error('not implemented')
+  }
+
+  async modifyListItems(prefix: string, ids: string[], active: boolean, array: string[]) {
+    const keyword = active ? 'active' : 'inactive'
+
+    await Promise.all(
+      ids.map((id) =>
+        this.lib.insertData([{ key: `${prefix}_${id}`, value: keyword }], this.seed)
+      )
+    )
+
+    pushUniq(ids, array)
   }
 }

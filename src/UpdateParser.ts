@@ -1,5 +1,6 @@
 import { SubscribeEvent, Entry, StateUpdate } from './Types'
 import * as Crypto from '@waves/ts-lib-crypto'
+import { _waves_events_StateUpdate_AssetDetails } from '../proto/interfaces/waves/events/StateUpdate'
 
 export interface DataUpdate {
   address: string
@@ -16,10 +17,23 @@ export interface EntriesForAddress {
   entries: ParsedEntry[]
 }
 
+export interface BalanceUpdate {
+  address: string
+  assetId: string
+  amount: number
+}
+
+export interface AssetUpdate extends _waves_events_StateUpdate_AssetDetails {
+  asset_id: string
+  issuer: string
+}
+
 export interface ParsedUpdate {
   height: number
   ids: string[]
   entries: EntriesForAddress[]
+  assets: AssetUpdate[]
+  balances: BalanceUpdate[]
 }
 
 export const getIds = (chunk: SubscribeEvent) => {
@@ -28,12 +42,7 @@ export const getIds = (chunk: SubscribeEvent) => {
 }
 
 export const parseEntry = (entry: Entry): ParsedEntry | null => {
-  if (!entry) return null
-
-  if (!entry.key) {
-    // this.logger.error('entry has no key')
-    return null
-  }
+  if (!entry?.key) return null
 
   const withKey = (value: any) => ({ key: entry.key!, value })
 
@@ -43,13 +52,37 @@ export const parseEntry = (entry: Entry): ParsedEntry | null => {
     case 'bool_value':
       return withKey(entry.bool_value)
     case 'int_value':
-      return withKey(BigInt(entry.int_value as string))
+      return withKey(Number((entry.int_value as string) ?? '0'))
     case 'string_value':
       return withKey(entry.string_value)
     default:
       return withKey(null)
   }
 }
+
+export const getBalanceUpdates = (stateUpdates: StateUpdate[]) =>
+  stateUpdates
+    .map((stateUpdate) => stateUpdate.balances!)
+    .flat()
+    .filter((balance) => balance)!
+    .map((balance) => ({
+      address: Crypto.base58Encode(balance.address!),
+      assetId: Crypto.base58Encode(balance.amount_after?.asset_id!),
+      amount: Number((balance.amount_after?.amount as string) ?? 0)
+    }))
+
+export const getAssetUpdates = (stateUpdates: StateUpdate[]) =>
+  stateUpdates
+    .map((stateUpdate) => stateUpdate.assets!)
+    .flat()
+    .filter((asset) => asset)
+    .map((asset) => asset.after!)
+    .filter((after) => after)
+    .map((after) => ({
+      ...after,
+      asset_id: Crypto.base58Encode(after.asset_id!),
+      issuer: Crypto.base58Encode(after.issuer!)
+    }))
 
 export const transformEntries = (stateUpdates: StateUpdate[]): EntriesForAddress[] => {
   return Object.entries(
@@ -88,6 +121,8 @@ export const parseUpdate = (chunk: SubscribeEvent): ParsedUpdate | null => {
   return {
     height: chunk.update?.height ?? 0,
     ids,
-    entries: transformEntries(stateUpdates)
+    entries: transformEntries(stateUpdates),
+    assets: getAssetUpdates(stateUpdates),
+    balances: getBalanceUpdates(stateUpdates)
   }
 }

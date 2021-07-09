@@ -2,8 +2,6 @@ import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 import { ACTIVE_KEYWORD, DEVICE_PREFIX, DEVICE_REGEX } from '../Constants'
 import { Logger } from '../Logger'
 import { Handler } from './Handler'
-import { DatabaseClient } from '../Database'
-import { BlockchainClient } from '../BlockchainClient'
 
 export interface SupplierPayload {
   name?: string
@@ -16,10 +14,6 @@ export interface SupplierPayload {
 }
 
 export class SupplierHandler extends Handler {
-  constructor(db: DatabaseClient, blockchain: BlockchainClient) {
-    super(db, blockchain)
-  }
-
   private logger = new Logger(SupplierHandler.name)
 
   get supplierModel() {
@@ -50,13 +44,15 @@ export class SupplierHandler extends Handler {
   }
 
   async createSupplier(address: string, payload: SupplierPayload) {
-    const obj = {
+    await this.supplierModel.create({
       ...payload,
       address,
-      devices: payload.devices.filter((device) => device.whitelisted)
-    }
+      devices: payload.devices
+        .filter((device) => device.whitelisted)
+        .map((device) => device.address),
+      whitelisted: false
+    })
 
-    await this.supplierModel.create(obj)
     this.logger.log(`Supplier ${address} created`)
   }
 
@@ -68,16 +64,16 @@ export class SupplierHandler extends Handler {
 
     const $set = { name, description }
     const $pull = { devices: { $in: blacklisted } }
-    const $push = { devices: { $each: whitelisted } }
+    const $addToSet = { devices: { $each: whitelisted } }
 
-    // Cannot run pull and push at the same time?
+    // Cannot run pull and add$addToSet at the same time?
 
     if (name || description) {
       await this.supplierModel.updateOne({ address }, { $set })
     }
 
     if (whitelisted.length) {
-      await this.supplierModel.updateOne({ address }, { $push })
+      await this.supplierModel.updateOne({ address }, { $addToSet })
     }
 
     if (blacklisted.length) {
@@ -99,8 +95,8 @@ export class SupplierHandler extends Handler {
     const list = entries
       .filter(({ key }) => DEVICE_REGEX.test(key))
       .map(({ key, value }) => ({
-        address: key.replace(DEVICE_PREFIX, '') ?? '',
-        whitelisted: ACTIVE_KEYWORD === value
+        address: key.replace(DEVICE_PREFIX, ''),
+        whitelisted: !!value
       }))
 
     return { ...info, devices: list }
