@@ -10,6 +10,8 @@ import {
 } from '../proto/interfaces/waves/events/StateUpdate'
 import { AssetsApiClient as RawAssetsApiClient } from '../proto/interfaces/waves/node/grpc/AssetsApi'
 import { AssetInfoResponse as RawAssetInfoResponse } from '../proto/interfaces/waves/node/grpc/AssetInfoResponse'
+import { Config } from './Config'
+import { ParsedUpdate } from './UpdateParser'
 
 // Interfaces
 export type SubscribeEvent = RawSubscribeEvent
@@ -24,3 +26,14 @@ export type BalanceUpdate = RawBalanceUpdate
 export type BlocksApiClient = RawBlocksApiClient
 export type BlockchainUpdatesApiClient = RawBlockchainUpdatesApiClient
 export type AssetsApiClient = RawAssetsApiClient
+
+export interface IProcess {
+  config: Config
+  init: () => Promise<void>
+  destroy: () => Promise<void>
+}
+
+export interface JobData {
+  handler: string
+  update: ParsedUpdate
+}

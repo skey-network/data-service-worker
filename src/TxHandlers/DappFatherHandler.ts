@@ -1,6 +1,3 @@
-import { Update, DataUpdate } from '../UpdateParser'
-import { createLogger } from '../Logger'
-import { Entry } from '../Types'
 import config from '../../config'
 import {
   ACTIVE_KEYWORD,
@@ -9,79 +6,88 @@ import {
   ORGANISATION_REGEX,
   ORGANISATION_PREFIX
 } from '../Constants'
-import { Supplier } from '../../models/Supplier'
-import { Organisation } from '../../models/Organisation'
-import { bufferToString } from '../Common'
+import { Handler } from './Handler'
+import { DatabaseClient } from '../Clients/DatabaseClient'
+import { BlockchainClient } from '../Clients/BlockchainClient'
+import { Logger } from '../Logger'
+import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 
-const logger = createLogger('DappFatherHandler')
+export class DappFatherHandler extends Handler {
+  private logger = new Logger(DappFatherHandler.name)
 
-export const handleDappFatherUpdates = async (update: Update) => {
-  for (const item of update.dataUpdates) {
-    await handleSingleUpdate(item)
-  }
-}
-
-const handleSingleUpdate = async (item: DataUpdate) => {
-  const { dappFatherAddress } = config().blockchain
-  const address = bufferToString(item.address)
-
-  if (address !== dappFatherAddress) {
-    return
-    // return logger.debug('address is not dapp father')
+  get supplierModel() {
+    return this.db.models.supplierModel
   }
 
-  for (const entry of item.entries) {
-    await handleSupplierEntry(entry)
-    await handleOrganisationEntry(entry)
-  }
-}
-
-const handleSupplierEntry = async (entry: Entry) => {
-  if (!SUPPLIER_REGEX.test(entry.key ?? '')) {
-    return
-    // return logger.debug('invalid key')
+  get organisationModel() {
+    return this.db.models.organisationModel
   }
 
-  const address = entry.key!.replace(SUPPLIER_PREFIX, '')
-  const whitelisted = entry.string_value === ACTIVE_KEYWORD
-
-  const exists = await Supplier.exists({ address })
-
-  const func = exists ? updateSupplier : createSupplier
-  return await func(address, whitelisted)
-}
-
-const handleOrganisationEntry = async (entry: Entry) => {
-  if (!ORGANISATION_REGEX.test(entry.key ?? '')) {
-    return
-    // return logger.debug('invalid key')
+  async handleUpdate(update: ParsedUpdate) {
+    for (const entries of update.entries) {
+      await this.handleSingleUpdate(entries)
+    }
   }
 
-  const address = entry.key!.replace(ORGANISATION_PREFIX, '')
-  const whitelisted = entry.string_value === ACTIVE_KEYWORD
+  async handleSingleUpdate({ address, entries }: EntriesForAddress) {
+    const { dappFatherAddress } = config().blockchain
+    this.logger.debug('dappFather address', dappFatherAddress)
+    this.logger.debug('entry address', dappFatherAddress)
 
-  const exists = await Organisation.exists({ address })
+    if (address !== dappFatherAddress) return
 
-  const func = exists ? updateOrganisation : createOrganisation
-  return await func(address, whitelisted)
-}
+    for (const entry of entries) {
+      await this.handleSupplierEntry(entry)
+      await this.handleOrganisationEntry(entry)
+    }
+  }
 
-const createSupplier = async (address: string, whitelisted: boolean) => {
-  await Supplier.create({ address, devices: [], whitelisted })
-  logger.log(`Supplier ${address} created`)
-}
+  async handleSupplierEntry({ key, value }: ParsedEntry) {
+    if (!SUPPLIER_REGEX.test(key)) return
 
-const updateSupplier = async (address: string, whitelisted: boolean) => {
-  await Supplier.updateOne({ address }, { whitelisted })
-  logger.log(`Supplier ${address} updated`)
-}
+    const address = key.replace(SUPPLIER_PREFIX, '')
+    const whitelisted = value === ACTIVE_KEYWORD
 
-const createOrganisation = async (address: string, whitelisted: boolean) => {
-  await Organisation.create({ address, whitelisted })
-  logger.log(`Organisation ${address} created`)
-}
+    const exists = await this.supplierModel.exists({ address })
 
-const updateOrganisation = async (address: string, whitelisted: boolean) => {
-  await Organisation.updateOne({ address }, { whitelisted })
-  logger.log(`Organisation ${address} updated`)
+    const func = exists ? this.updateSupplier : this.createSupplier
+    return await func.bind(this)(address, whitelisted)
+  }
+
+  async handleOrganisationEntry({ key, value }: ParsedEntry) {
+    if (!ORGANISATION_REGEX.test(key)) return
+
+    const address = key.replace(ORGANISATION_PREFIX, '')
+    const whitelisted = value === ACTIVE_KEYWORD
+
+    const exists = await this.organisationModel.exists({ address })
+
+    const func = exists ? this.updateOrganisation : this.createOrganisation
+    return await func.bind(this)(address, whitelisted)
+  }
+
+  async createSupplier(address: string, whitelisted: boolean) {
+    await this.supplierModel.create({
+      address,
+      devices: [],
+      organisations: [],
+      whitelisted
+    })
+    this.logger.log(`Supplier ${address} created`)
+  }
+
+  async updateSupplier(address: string, whitelisted: boolean) {
+    await this.supplierModel.updateOne({ address }, { whitelisted })
+    this.logger.log(`Supplier ${address} updated`)
+  }
+
+  async createOrganisation(address: string, whitelisted: boolean) {
+    await this.organisationModel.create({ address, whitelisted, users: [] })
+    this.logger.log(`Organisation ${address} created`)
+  }
+
+  async updateOrganisation(address: string, whitelisted: boolean) {
+    await this.organisationModel.updateOne({ address }, { whitelisted })
+    this.logger.log(`Organisation ${address} updated`)
+  }
 }

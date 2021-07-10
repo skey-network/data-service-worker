@@ -1,9 +1,7 @@
-import { DataUpdate, Update } from '../UpdateParser'
-import { Entry } from '../Types'
-import { Supplier } from '../../models/Supplier'
+import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 import { ACTIVE_KEYWORD, DEVICE_PREFIX, DEVICE_REGEX } from '../Constants'
-import { createLogger } from '../Logger'
-import { bufferToString } from '../Common'
+import { Logger } from '../Logger'
+import { Handler } from './Handler'
 
 export interface SupplierPayload {
   name?: string
@@ -15,82 +13,92 @@ export interface SupplierPayload {
   }[]
 }
 
-const logger = createLogger('UpdateSupplierHandler')
+export class SupplierHandler extends Handler {
+  private logger = new Logger(SupplierHandler.name)
 
-export const handleSupplierUpdates = async (update: Update) => {
-  for (const item of update.dataUpdates) {
-    await handleSingleUpdate(item)
-  }
-}
-
-const handleSingleUpdate = async (item: DataUpdate) => {
-  const address = bufferToString(item.address ?? [])
-  const payload = parseEntries(item.entries)
-
-  const exists = await Supplier.exists({ address })
-
-  if (exists) {
-    return await updateSupplier(address, payload)
+  get supplierModel() {
+    return this.db.models.supplierModel
   }
 
-  if (payload.type === 'supplier') {
-    return await createSupplier(address, payload)
-  }
-}
+  async handleUpdate(update: ParsedUpdate) {
+    this.logger.debug(SupplierHandler.name, 'handle height', update.height)
 
-const createSupplier = async (address: string, payload: SupplierPayload) => {
-  const obj = {
-    ...payload,
-    address,
-    devices: payload.devices.filter((device) => device.whitelisted)
+    for (const entries of update.entries) {
+      await this.handleSingleUpdate(entries)
+    }
   }
 
-  await Supplier.create(obj)
-  logger.log(`Supplier ${address} created`)
-}
+  async handleSingleUpdate(item: EntriesForAddress) {
+    const { address, entries } = item
+    const payload = this.parseEntries(entries)
 
-const updateSupplier = async (address: string, payload: SupplierPayload) => {
-  const { name, description, devices } = payload
+    const exists = await this.supplierModel.exists({ address: item.address })
 
-  const whitelisted = devices.filter((d) => d.whitelisted).map((d) => d.address)
-  const blacklisted = devices.filter((d) => !d.whitelisted).map((d) => d.address)
+    if (exists) {
+      return await this.updateSupplier(address, payload)
+    }
 
-  const $set = { name, description }
-  const $pull = { devices: { $in: blacklisted } }
-  const $push = { devices: { $each: whitelisted } }
-
-  // Cannot run pull and push at the same time?
-
-  if (name || description) {
-    await Supplier.updateOne({ address }, { $set })
+    if (payload.type === 'supplier') {
+      return await this.createSupplier(address, payload)
+    }
   }
 
-  if (whitelisted.length) {
-    await Supplier.updateOne({ address }, { $push })
+  async createSupplier(address: string, payload: SupplierPayload) {
+    await this.supplierModel.create({
+      ...payload,
+      address,
+      devices: payload.devices
+        .filter((device) => device.whitelisted)
+        .map((device) => device.address),
+      whitelisted: false
+    })
+
+    this.logger.log(`Supplier ${address} created`)
   }
 
-  if (blacklisted.length) {
-    await Supplier.updateOne({ address }, { $pull })
+  async updateSupplier(address: string, payload: SupplierPayload) {
+    const { name, description, devices } = payload
+
+    const whitelisted = devices.filter((d) => d.whitelisted).map((d) => d.address)
+    const blacklisted = devices.filter((d) => !d.whitelisted).map((d) => d.address)
+
+    const $set = { name, description }
+    const $pull = { devices: { $in: blacklisted } }
+    const $addToSet = { devices: { $each: whitelisted } }
+
+    // Cannot run pull and add$addToSet at the same time?
+
+    if (name || description) {
+      await this.supplierModel.updateOne({ address }, { $set })
+    }
+
+    if (whitelisted.length) {
+      await this.supplierModel.updateOne({ address }, { $addToSet })
+    }
+
+    if (blacklisted.length) {
+      await this.supplierModel.updateOne({ address }, { $pull })
+    }
+
+    this.logger.log(`Supplier ${address} updated`)
   }
 
-  logger.log(`Supplier ${address} updated`)
-}
+  parseEntries(entries: ParsedEntry[]): SupplierPayload {
+    const fields = ['name', 'description', 'type']
 
-const parseEntries = (entries: Entry[]): SupplierPayload => {
-  const fields = ['name', 'description', 'type']
+    const info = Object.fromEntries(
+      entries
+        .filter(({ key }) => fields.includes(key))
+        .map(({ key, value }) => [key, value])
+    )
 
-  const info = Object.fromEntries(
-    entries
-      .filter((entry) => fields.includes(entry.key!))
-      .map((entry) => [entry.key, entry.string_value])
-  )
+    const list = entries
+      .filter(({ key }) => DEVICE_REGEX.test(key))
+      .map(({ key, value }) => ({
+        address: key.replace(DEVICE_PREFIX, ''),
+        whitelisted: !!value
+      }))
 
-  const list = entries
-    .filter((entry) => DEVICE_REGEX.test(entry.key!))
-    .map((entry) => ({
-      address: entry.key?.replace(DEVICE_PREFIX, '') ?? '',
-      whitelisted: ACTIVE_KEYWORD === entry.string_value
-    }))
-
-  return { ...info, devices: list }
+    return { ...info, devices: list }
+  }
 }

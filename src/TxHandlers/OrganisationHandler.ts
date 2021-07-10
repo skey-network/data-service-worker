@@ -1,58 +1,67 @@
-import { Update, DataUpdate } from '../UpdateParser'
-import { createLogger } from '../Logger'
-import { bufferToString } from '../Common'
-import { Entry } from '../Types'
-import { Organisation } from '../../models/Organisation'
+import { ParsedUpdate, EntriesForAddress, ParsedEntry } from '../UpdateParser'
+import { Handler } from './Handler'
+import { DatabaseClient } from '../Clients/DatabaseClient'
+import { BlockchainClient } from '../Clients/BlockchainClient'
+import { Logger } from '../Logger'
 
 interface OrganisationPayload {
-  name: string
-  description: string
-  type: string
+  name?: string
+  description?: string
+  type?: string
 }
 
-const logger = createLogger('OrganisationHandler')
-
-export const handleOrganisationUpdates = async (update: Update) => {
-  for (const item of update.dataUpdates) {
-    await handleSingleUpdate(item)
-  }
-}
-
-const handleSingleUpdate = async (item: DataUpdate) => {
-  const address = bufferToString(item.address ?? [])
-  const payload = parseEntries(item.entries)
-
-  const exists = await Organisation.exists({ address })
-  const func = exists ? updateOrganisation : createOrganisation
-
-  return await func(address, payload)
-}
-
-const parseEntries = (entries: Entry[]): OrganisationPayload => {
-  const fields = ['name', 'description', 'type']
-
-  return Object.fromEntries(
-    entries
-      .filter((entry) => fields.includes(entry.key!))
-      .map((entry) => [entry.key, entry.string_value])
-  )
-}
-
-const createOrganisation = async (address: string, payload: OrganisationPayload) => {
-  if (payload.type !== 'organisation') {
-    // return logger.debug('invalid type')
-    return
+export class OrganisationHandler extends Handler {
+  get organisationModel() {
+    return this.db.models.organisationModel
   }
 
-  const { name, description } = payload
+  private logger = new Logger(OrganisationHandler.name)
 
-  await Organisation.create({ address, name, description })
-  logger.log(`Organisation ${address} created`)
-}
+  async handleUpdate(update: ParsedUpdate) {
+    this.logger.debug(OrganisationHandler.name, 'handle height', update.height)
 
-const updateOrganisation = async (address: string, payload: OrganisationPayload) => {
-  const { name, description } = payload
+    for (const entries of update.entries) {
+      await this.handleSingleUpdate(entries)
+    }
+  }
 
-  await Organisation.updateOne({ address }, { name, description })
-  logger.log(`Organisation ${address} updated`)
+  async handleSingleUpdate(item: EntriesForAddress) {
+    const { address, entries } = item
+    const payload = this.parseEntries(entries)
+
+    const exists = await this.organisationModel.exists({ address })
+    const func = exists ? this.updateOrganisation : this.createOrganisation
+
+    return await func.bind(this)(address, payload)
+  }
+
+  parseEntries(entries: ParsedEntry[]): OrganisationPayload {
+    const fields = ['name', 'description', 'type']
+
+    return Object.fromEntries(
+      entries
+        .filter(({ key }) => fields.includes(key))
+        .map(({ key, value }) => [key, value])
+    )
+  }
+
+  async createOrganisation(address: string, payload: OrganisationPayload) {
+    if (payload.type !== 'organisation') return
+    const { name, description } = payload
+
+    await this.organisationModel.create({
+      address,
+      name,
+      description,
+      whitelisted: false
+    })
+    this.logger.log(`Organisation ${address} created`)
+  }
+
+  async updateOrganisation(address: string, payload: OrganisationPayload) {
+    const { name, description } = payload
+
+    await this.organisationModel.updateOne({ address }, { name, description })
+    this.logger.log(`Organisation ${address} updated`)
+  }
 }

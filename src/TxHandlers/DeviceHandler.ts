@@ -1,8 +1,9 @@
-import { DataUpdate, Update } from '../UpdateParser'
-import { Entry } from '../Types'
-import { createLogger } from '../Logger'
-import { Device } from '../../models/Device'
+import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 import { ACTIVE_KEYWORD, KEY_REGEX } from '../Constants'
+import { Handler } from './Handler'
+import { DatabaseClient } from '../Clients/DatabaseClient'
+import { BlockchainClient } from '../Clients/BlockchainClient'
+import { Logger } from '../Logger'
 
 interface KeyItem {
   id: string
@@ -16,104 +17,107 @@ const keysMap = Object.freeze({
   booleans: ['visible', 'active', 'connected']
 })
 
-const logger = createLogger('UpdateDeviceHandler')
+export class DeviceHandler extends Handler {
+  private logger = new Logger(DeviceHandler.name)
 
-export const handleDeviceUpdates = async (update: Update) => {
-  for (const item of update.dataUpdates) {
-    await handleSingleUpdate(item)
-  }
-}
-
-const handleSingleUpdate = async (item: DataUpdate) => {
-  const update = parseProps(item.entries)
-  const keyList = parseKeyList(item.entries)
-
-  if (!update && !keyList.length) return
-
-  const device = await Device.exists({ address: item.address })
-  const func = device ? updateDevice : createDevice
-
-  await func(item.address, update, keyList)
-}
-
-const createDevice = async (address: string, update: any, keyList: KeyItem[]) => {
-  if (update?.type !== 'device') return
-
-  const list = keyList.filter((key) => key.whitelisted).map((key) => key.id)
-
-  await Device.create({ ...update, address, keys: list })
-  logger.log(`Device ${address} created`)
-}
-
-const updateDevice = async (address: string, update: any, keyList: KeyItem[]) => {
-  const whitelisted = keyList.filter((k) => k.whitelisted).map((k) => k.id)
-  const blacklisted = keyList.filter((k) => !k.whitelisted).map((k) => k.id)
-
-  const $set = update
-  const $pull = { keys: { $in: blacklisted } }
-  const $push = { keys: { $each: whitelisted } }
-
-  if (update) {
-    await Device.updateOne({ address }, { $set })
+  get deviceModel() {
+    return this.db.models.deviceModel
   }
 
-  if (whitelisted.length) {
-    await Device.updateOne({ address }, { $push })
+  async handleUpdate(update: ParsedUpdate) {
+    for (const item of update.entries) {
+      await this.handleSingleUpdate(item)
+    }
   }
 
-  if (blacklisted.length) {
-    await Device.updateOne({ address }, { $pull })
+  async handleSingleUpdate(item: EntriesForAddress) {
+    const update = this.parseProps(item.entries)
+    const keyList = this.parseKeyList(item.entries)
+
+    if (!update && !keyList.length) return
+
+    const device = await this.deviceModel.exists({ address: item.address })
+    const func = device ? this.updateDevice : this.createDevice
+
+    await func.bind(this)(item.address, update, keyList)
   }
 
-  logger.log(`Device ${address} updated`)
-}
+  async createDevice(address: string, update: any, keyList: KeyItem[]) {
+    if (update?.type !== 'device') return
 
-const parseKeyList = (entries: Entry[]): KeyItem[] => {
-  return entries
-    .filter((entry) => KEY_REGEX.test(entry.key ?? ''))
-    .map((entry) => ({
-      id: entry.key!.replace('key_', ''),
-      whitelisted: entry.string_value === ACTIVE_KEYWORD
-    }))
-}
+    const list = keyList.filter((key) => key.whitelisted).map((key) => key.id)
 
-const parseProps = (entries: Entry[]): any | null => {
-  const updates = entries
-    .map((entry) => {
-      const key = entry.key ?? ''
-      const { string_value, bool_value } = entry
+    await this.deviceModel.create({ ...update, address, keys: list })
+    this.logger.log(`Device ${address} created`)
+  }
 
-      if (keysMap.strings.includes(key)) {
-        return { [key]: string_value ?? '' }
-      }
+  async updateDevice(address: string, update: any, keyList: KeyItem[]) {
+    const whitelisted = keyList.filter((k) => k.whitelisted).map((k) => k.id)
+    const blacklisted = keyList.filter((k) => !k.whitelisted).map((k) => k.id)
 
-      if (keysMap.floats.includes(key)) {
-        return { [key]: Number(string_value ?? '0') }
-      }
+    const $set = update
+    const $pull = { keys: { $in: blacklisted } }
+    const $addToSet = { keys: { $each: whitelisted } }
 
-      if (keysMap.json.includes(key)) {
-        const obj = tryParse(string_value ?? '')
+    if (update) {
+      await this.deviceModel.updateOne({ address }, { $set })
+    }
 
-        if (!obj) return logger.error('invalid json')
+    if (whitelisted.length) {
+      await this.deviceModel.updateOne({ address }, { $addToSet })
+    }
 
-        return { [key]: obj }
-      }
+    if (blacklisted.length) {
+      await this.deviceModel.updateOne({ address }, { $pull })
+    }
 
-      if (keysMap.booleans.includes(key)) {
-        return { [key]: bool_value ?? false }
-      }
-    })
-    .filter((update) => update)
+    this.logger.log(`Device ${address} updated`)
+  }
 
-  if (updates.length === 0) return null
+  parseKeyList(entries: ParsedEntry[]): KeyItem[] {
+    return entries
+      .filter(({ key }) => KEY_REGEX.test(key))
+      .map(({ key, value }) => ({
+        id: key.replace('key_', ''),
+        whitelisted: value === ACTIVE_KEYWORD
+      }))
+  }
 
-  return Object.assign({}, ...updates)
-}
+  parseProps(entries: ParsedEntry[]): any | null {
+    const updates = entries
+      .map(({ key, value }) => {
+        if (keysMap.strings.includes(key)) {
+          return { [key]: value }
+        }
 
-const tryParse = (text: string) => {
-  try {
-    return JSON.parse(text)
-  } catch {
-    return null
+        if (keysMap.floats.includes(key)) {
+          return { [key]: Number(value) }
+        }
+
+        if (keysMap.json.includes(key)) {
+          const obj = this.tryParse(value as string)
+
+          if (!obj) return this.logger.error('invalid json')
+
+          return { [key]: obj }
+        }
+
+        if (keysMap.booleans.includes(key)) {
+          return { [key]: value }
+        }
+      })
+      .filter((update) => update)
+
+    if (updates.length === 0) return null
+
+    return Object.assign({}, ...updates)
+  }
+
+  tryParse(text: string) {
+    try {
+      return JSON.parse(text)
+    } catch {
+      return null
+    }
   }
 }
