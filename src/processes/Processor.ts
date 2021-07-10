@@ -4,15 +4,10 @@ import {
   defaultOptions as dbDefaultOptions
 } from '../Clients/DatabaseClient'
 import Queue from 'bull'
-import { DeviceHandler } from '../TxHandlers/DeviceHandler'
 import { IProcess, JobData } from '../Types'
-import { SupplierHandler } from '../TxHandlers/SupplierHandler'
-import { OrganisationHandler } from '../TxHandlers/OrganisationHandler'
-import { DappFatherHandler } from '../TxHandlers/DappFatherHandler'
 import { GrpcClient } from '../Clients/GrpcClient'
 import { BlockchainClient } from '../Clients/BlockchainClient'
-import { KeyHandler } from '../TxHandlers/KeyHandler'
-import { EventHandler } from '../TxHandlers/EventHandler'
+import { getInstances } from '../HandlerManager'
 
 export class Processor implements IProcess {
   config: Config
@@ -44,22 +39,10 @@ export class Processor implements IProcess {
   }
 
   async process(job: Queue.Job<JobData>) {
-    const dappFatherHandler = new DappFatherHandler(this.config, this.db, this.blockchain)
-    const supplierHandler = new SupplierHandler(this.config, this.db, this.blockchain)
-    const organisationHandler = new OrganisationHandler(
-      this.config,
-      this.db,
-      this.blockchain
-    )
-    const deviceHandler = new DeviceHandler(this.config, this.db, this.blockchain)
-    const keyHandler = new KeyHandler(this.config, this.db, this.blockchain)
-    const eventHandler = new EventHandler(this.config, this.db, this.blockchain)
+    const handlers = getInstances(this.config, this.db, this.blockchain)
 
-    await dappFatherHandler.handleUpdate(job.data.update)
-    await supplierHandler.handleUpdate(job.data.update)
-    await organisationHandler.handleUpdate(job.data.update)
-    await deviceHandler.handleUpdate(job.data.update)
-    await keyHandler.handleUpdate(job.data.update)
-    await eventHandler.handleUpdate(job.data.update)
+    for (const handler of handlers) {
+      await handler.handleUpdate(job.data.update)
+    }
   }
 }

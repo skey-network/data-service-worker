@@ -2,16 +2,21 @@ import '../setup'
 
 import * as protoLoader from '@grpc/proto-loader'
 import * as grpc from '@grpc/grpc-js'
-import * as GrpcClient from '../../src/Clients/GrpcClient'
-import config from '../../config'
+import { GrpcClient } from '../../src/Clients/GrpcClient'
 
 describe('GrpcClient', () => {
+  let client: GrpcClient
+
+  beforeEach(() => {
+    client = new GrpcClient({ host: 'localhost', apiPort: 3000, updatesPort: 4000 })
+  })
+
   describe('loadProto', () => {
     it('loads correct proto from files', () => {
       const loadSync = jest.spyOn(protoLoader, 'loadSync')
 
       const cwd = process.cwd()
-      const proto = GrpcClient.loadProto()
+      const proto = client.loadProto()
 
       const arr = [
         `${cwd}/proto/accounts_api.proto`,
@@ -45,23 +50,21 @@ describe('GrpcClient', () => {
         }
       }
 
-      const client = GrpcClient.createApi(TestClass, 3000)
+      const obj = client.createApi(TestClass, 'localhost', 3000)
 
       expect(fn).toHaveBeenCalledTimes(1)
-      expect(fn.mock.calls[0][0]).toBe(`${config().grpc.host}:3000`)
+      expect(fn.mock.calls[0][0]).toBe('localhost:3000')
       expect(fn.mock.calls[0][1]).toBeInstanceOf(grpc.ChannelCredentials)
-      expect(client).toBeDefined()
+      expect(obj).toBeDefined()
     })
   })
 
   describe('createGrpcClient', () => {
     it('apis are defined', () => {
-      const instance = GrpcClient.createGrpcClient()
-
-      expect(instance.blockchainUpdatesApiClient).toBeDefined()
-      expect(instance.blocksApiClient).toBeDefined()
-      expect(instance.assetsApiClient).toBeDefined()
-      expect(instance.transactionsApiClient).toBeDefined()
+      expect(client.blockchainUpdatesApiClient).toBeDefined()
+      expect(client.blocksApiClient).toBeDefined()
+      expect(client.assetsApiClient).toBeDefined()
+      expect(client.transactionsApiClient).toBeDefined()
     })
   })
 })

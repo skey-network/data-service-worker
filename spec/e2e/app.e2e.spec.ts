@@ -22,7 +22,7 @@ describe('e2e', () => {
 
   afterAll(async () => {
     await app.destroy()
-    // await Context.removeE2eContext(e2e)
+    await Context.removeE2eContext(e2e)
   })
 
   it('database data match blockchain data', async () => {
@@ -36,9 +36,6 @@ describe('e2e', () => {
 
     const dbContext = await dbToCommonContext(app.processor.db)
     const bContext = bToCommonContext(ctx)
-
-    console.log(dbContext.events)
-    console.log(bContext.events)
 
     expect(dbContext).toEqual(bContext)
   })

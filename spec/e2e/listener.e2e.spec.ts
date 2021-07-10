@@ -14,7 +14,7 @@ describe('e2e', () => {
   let updates: ParsedUpdate[] = []
 
   beforeAll(async () => {
-    e2e = await Context.createE2eContext(0)
+    e2e = await Context.createE2eContext(1)
     config = Context.createConfig(e2e)
     listener = new Listener(config)
 

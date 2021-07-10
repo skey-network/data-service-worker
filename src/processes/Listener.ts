@@ -4,12 +4,7 @@ import { GrpcClient } from '../Clients/GrpcClient'
 import Queue from 'bull'
 import { parseUpdate } from '../UpdateParser'
 import { IProcess, JobData, SubscribeEvent } from '../Types'
-import { DeviceHandler } from '../TxHandlers/DeviceHandler'
-import { SupplierHandler } from '../TxHandlers/SupplierHandler'
-import { OrganisationHandler } from '../TxHandlers/OrganisationHandler'
-import { DappFatherHandler } from '../TxHandlers/DappFatherHandler'
-import { KeyHandler } from '../TxHandlers/KeyHandler'
-import { EventHandler } from '../TxHandlers/EventHandler'
+import { getClasses } from '../HandlerManager'
 
 export class Listener implements IProcess {
   config: Config
@@ -27,13 +22,13 @@ export class Listener implements IProcess {
     this.queue = new Queue(queue, { redis: { host, port } })
   }
 
-  async init() {
-    const height = await this.blockchain.fetchHeight()
-    if (!height) return console.error('Cannot fetch height')
+  async init(height?: number) {
+    const currentHeight = await this.blockchain.fetchHeight()
+    if (!currentHeight) return console.error('Cannot fetch currentHeight')
 
     this.cancelListener = this.blockchain.subscribe(
       this.handleChunk.bind(this),
-      height
+      height ?? currentHeight
     ).cancel
   }
 
@@ -46,11 +41,8 @@ export class Listener implements IProcess {
     const update = parseUpdate(chunk)
     if (!update) return
 
-    await this.queue.add({ update, handler: DappFatherHandler.name })
-    await this.queue.add({ update, handler: SupplierHandler.name })
-    await this.queue.add({ update, handler: OrganisationHandler.name })
-    await this.queue.add({ update, handler: DeviceHandler.name })
-    await this.queue.add({ update, handler: KeyHandler.name })
-    await this.queue.add({ update, handler: EventHandler.name })
+    for (const { name } of getClasses()) {
+      await this.queue.add({ update, handler: name })
+    }
   }
 }

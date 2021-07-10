@@ -15,9 +15,9 @@ export class App implements IProcess {
     this.processor = new Processor(config)
   }
 
-  async init() {
+  async init(height?: number) {
     await this.processor.init()
-    await this.listener.init()
+    await this.listener.init(height)
   }
 
   async destroy() {

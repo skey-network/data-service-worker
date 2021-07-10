@@ -4,6 +4,14 @@ configure()
 import config from '../config'
 import { App } from './Processes/App'
 
+const parseArgs = () => {
+  const [key, value] = process.argv.slice(2)
+
+  if (key !== '--height' || !value) return
+
+  return Number(value)
+}
+
 const app = new App(config())
 
-app.init()
+app.init(parseArgs())
