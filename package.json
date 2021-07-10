@@ -27,7 +27,7 @@
     "mongoose": "^5.12.10",
     "redis": "^3.1.2",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.1.0",
+    "rxjs": "^6.0.0",
     "skey-lib": "smartkeyplatform/SmartKey-Libs",
     "telegraf": "^4.3.0",
     "ts-mongoose": "^0.0.24"
