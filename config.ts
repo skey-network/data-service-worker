@@ -25,7 +25,7 @@ export default () =>
       apiPort: Number(env.GRPC_API_PORT ?? '6877')
     },
     redis: {
-      queue: 'default',
+      queue: env.REDIS_QUEUE ?? 'default',
       host: env.REDIS_HOST ?? 'localhost',
       port: Number(env.REDIS_PORT ?? '6379')
     },
