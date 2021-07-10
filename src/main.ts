@@ -2,7 +2,7 @@ import { config as configure } from 'dotenv'
 configure()
 
 import config from '../config'
-import { App } from './Processes/App'
+import { App } from './processes/App'
 
 const parseArgs = () => {
   const [key, value] = process.argv.slice(2)

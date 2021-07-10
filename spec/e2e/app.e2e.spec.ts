@@ -1,6 +1,6 @@
 import { delay } from '../../src/Common'
 import { Config } from '../../src/Config'
-import { App } from '../../src/Processes/App'
+import { App } from '../../src/processes/App'
 import { dbToCommonContext, bToCommonContext } from '../converter'
 import * as Context from '../Docker/Context'
 import { createBundle } from '../factory/Factory'
