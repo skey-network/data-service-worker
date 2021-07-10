@@ -8,7 +8,6 @@ import { OrganisationHandler } from './TxHandlers/OrganisationHandler'
 import { DappFatherHandler } from './TxHandlers/DappFatherHandler'
 import { KeyHandler } from './TxHandlers/KeyHandler'
 import { EventHandler } from './TxHandlers/EventHandler'
-import { Handler } from './TxHandlers/Handler'
 
 export const getClasses = () => [
   DappFatherHandler,
@@ -19,8 +18,5 @@ export const getClasses = () => [
   EventHandler
 ]
 
-export const getInstances = (
-  config: Config,
-  db: DatabaseClient,
-  blockchain: BlockchainClient
-): Handler[] => getClasses().map((classRef) => new classRef(config, db, blockchain))
+export const getClassByName = (name: string) =>
+  getClasses().find((ref) => ref.name === name) ?? null

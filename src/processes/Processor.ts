@@ -7,7 +7,7 @@ import Queue from 'bull'
 import { IProcess, JobData } from '../Types'
 import { GrpcClient } from '../Clients/GrpcClient'
 import { BlockchainClient } from '../Clients/BlockchainClient'
-import { getInstances } from '../HandlerManager'
+import { getClassByName } from '../HandlerManager'
 
 export class Processor implements IProcess {
   config: Config
@@ -39,10 +39,9 @@ export class Processor implements IProcess {
   }
 
   async process(job: Queue.Job<JobData>) {
-    const handlers = getInstances(this.config, this.db, this.blockchain)
+    const handlerClass = getClassByName(job.data.handler)!
+    const handler = new handlerClass(this.config, this.db, this.blockchain)
 
-    for (const handler of handlers) {
-      await handler.handleUpdate(job.data.update)
-    }
+    await handler.handleUpdate(job.data.update)
   }
 }
