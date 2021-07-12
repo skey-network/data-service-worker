@@ -85,7 +85,9 @@ export class BlockchainClient {
         }
 
         // TODO handle errors?
-        reject(err)
+        // Figure out a better solution
+        process.exit(1)
+        // reject(err)
       })
     })
 
