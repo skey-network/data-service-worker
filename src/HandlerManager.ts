@@ -8,6 +8,7 @@ import { OrganisationHandler } from './TxHandlers/OrganisationHandler'
 import { DappFatherHandler } from './TxHandlers/DappFatherHandler'
 import { KeyHandler } from './TxHandlers/KeyHandler'
 import { EventHandler } from './TxHandlers/EventHandler'
+import { DebugHandler } from './TxHandlers/DebugHandler'
 
 export const getClasses = () => [
   DappFatherHandler,
@@ -15,7 +16,8 @@ export const getClasses = () => [
   OrganisationHandler,
   DeviceHandler,
   KeyHandler,
-  EventHandler
+  EventHandler,
+  DebugHandler
 ]
 
 export const getClassByName = (name: string) =>
