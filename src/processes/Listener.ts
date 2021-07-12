@@ -24,7 +24,10 @@ export class Listener implements IProcess {
 
   async init(height?: number) {
     const currentHeight = await this.blockchain.fetchHeight()
-    if (!currentHeight) return console.error('Cannot fetch currentHeight')
+    if (!currentHeight) {
+      console.error('Cannot fetch currentHeight')
+      process.exit(1)
+    }
 
     this.cancelListener = this.blockchain.subscribe(
       this.handleChunk.bind(this),
