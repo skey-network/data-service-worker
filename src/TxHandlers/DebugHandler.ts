@@ -13,7 +13,8 @@ export class DebugHandler extends Handler {
   private file = './height.txt'
 
   async handleUpdate(update: ParsedUpdate) {
-    this.write({ height: update.height, timestamp: Date.now() })
+    this.logger.debug('Current height', update.height)
+    // this.write({ height: update.height, timestamp: Date.now() })
   }
 
   // read(): MetaContent | null {
