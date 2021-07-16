@@ -93,7 +93,10 @@ export class BlockchainClient {
     const call = this.client.blockchainUpdatesApiClient.subscribe(request)
 
     const promise = new Promise<void>((resolve, reject) => {
-      call.on('data', callback)
+      call.on('data', (chunk: SubscribeEvent) => {
+        this.logger.debug('Received update, height', chunk.update?.height)
+        callback(chunk)
+      })
 
       call.on('end', resolve)
       call.on('close', resolve)

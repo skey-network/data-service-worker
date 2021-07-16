@@ -13,5 +13,8 @@ const parseArgs = () => {
 }
 
 const app = new App(config())
-app.listener.blockchain.watchHeight()
+// app.listener.blockchain.watchHeight()
 app.init(parseArgs())
+
+console.log('App started')
+console.log(config())
