@@ -11,9 +11,9 @@ interface KeyItem {
 }
 
 const keysMap = Object.freeze({
-  strings: ['name', 'description', 'type', 'supplier', 'owner', 'version'],
+  strings: ['name', 'description', 'type', 'supplier', 'owner', 'version', 'custom'],
   floats: ['lat', 'lng', 'alt'],
-  json: ['details', 'custom'],
+  json: ['details'],
   booleans: ['visible', 'active', 'connected']
 })
 
@@ -96,7 +96,6 @@ export class DeviceHandler extends Handler {
 
         if (keysMap.json.includes(key)) {
           const obj = this.tryParse(value as string)
-
           if (!obj) return this.logger.error('invalid json')
 
           return { [key]: obj }

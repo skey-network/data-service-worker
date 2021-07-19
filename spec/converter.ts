@@ -87,7 +87,10 @@ export const dbToCommonContext = async (db: DatabaseClient): Promise<CommonConte
   const events = await db.models.eventModel.find()
 
   return {
-    devices: sortByAddress(devices.map(toObject)) as any,
+    devices: sortByAddress(devices.map(toObject)).map((device) => ({
+      ...device,
+      custom: JSON.parse(device.custom!)
+    })) as any,
     suppliers: sortByAddress(
       suppliers
         .map(toObject)

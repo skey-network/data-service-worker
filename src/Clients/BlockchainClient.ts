@@ -103,7 +103,7 @@ export class BlockchainClient {
 
       call.on('error', (err) => {
         if (err.message === CANCEL_MESSAGE) {
-          resolve()
+          return resolve()
         }
 
         // TODO handle errors?

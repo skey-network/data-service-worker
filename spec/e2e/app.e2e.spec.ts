@@ -4,6 +4,16 @@ import { App } from '../../src/processes/App'
 import { dbToCommonContext, bToCommonContext } from '../converter'
 import * as Context from '../Docker/Context'
 import { createBundle } from '../factory/Factory'
+import { CommonContext } from './CommonContext'
+
+const expectToHaveMatchingAmounts = (
+  dbContext: CommonContext,
+  bContext: CommonContext
+) => {
+  Object.entries(dbContext).forEach(([key, value]) => {
+    expect(value.length).toBe((bContext as any)[key].length)
+  })
+}
 
 describe('e2e', () => {
   let e2e: Context.E2eContext
@@ -36,6 +46,8 @@ describe('e2e', () => {
 
     const dbContext = await dbToCommonContext(app.processor.db)
     const bContext = bToCommonContext(ctx)
+
+    expectToHaveMatchingAmounts(dbContext, bContext)
 
     expect(dbContext).toEqual(bContext)
   })
