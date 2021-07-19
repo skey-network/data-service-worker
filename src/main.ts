@@ -13,8 +13,14 @@ const parseArgs = () => {
 }
 
 const app = new App(config())
-// app.listener.blockchain.watchHeight()
-app.init(parseArgs())
+
+app.init(parseArgs()).then(() => {
+  // DEBUG
+  setInterval(async () => {
+    const data = await app.listener.queue.getJobCounts()
+    console.log(data)
+  }, 5000)
+})
 
 console.log('App started')
 console.log(config())
