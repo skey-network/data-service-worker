@@ -1,5 +1,7 @@
 import mongoose from 'mongoose'
-import { createModels, Models } from '../../schemas/Schemas'
+import { CollectionName, Models, createModels } from '../../schemas/Schemas'
+import { Config } from '../Config'
+import { Logger } from '../Logger'
 
 export interface ConnectionParams {
   host: string
@@ -22,20 +24,61 @@ export class DatabaseClient {
   params: ConnectionParams
   options: mongoose.ConnectOptions
   models: Models
+  config: Config
 
-  constructor(params: ConnectionParams, options?: mongoose.ConnectOptions) {
-    this.params = params
+  constructor(config: Config, options?: mongoose.ConnectOptions) {
     this.options = options ?? defaultOptions
+    this.params = config.db
+    this.config = config
+  }
+
+  get logger() {
+    return new Logger(DatabaseClient.name, this.config.app.logs)
   }
 
   async connect() {
     const uri = DatabaseClient.createUri(this.params)
     this.connection = await mongoose.createConnection(uri, this.options)
-    this.models = createModels(this.connection)
+    this.models = await createModels(this.connection)
   }
 
   async disconnect() {
     await this.connection.close(true)
+  }
+
+  async safeInsertOne(doc: any, collection: CollectionName) {
+    try {
+      await this.models[collection].create(doc)
+      return true
+    } catch (err) {
+      this.logger.error('Failed to insert document')
+      this.logger.error(err)
+
+      return false
+    }
+  }
+
+  async safeUpdateOne(query: any, update: any, collection: CollectionName) {
+    try {
+      await this.models[collection].updateOne(query, update)
+      return true
+    } catch (err) {
+      this.logger.error('Failed to update document')
+      this.logger.error(err)
+
+      return false
+    }
+  }
+
+  async safeFindOne(query: any, collection: CollectionName): Promise<null | any> {
+    try {
+      return await this.models[collection].findOne(query)
+    } catch (err) {
+      this.logger.error('Failed to fetch document')
+      this.logger.error(err)
+
+      return null
+    }
   }
 
   static createUri(params: ConnectionParams) {

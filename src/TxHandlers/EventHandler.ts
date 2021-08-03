@@ -2,8 +2,6 @@ import { ParsedUpdate } from '../UpdateParser'
 import * as Common from '../Common'
 import { TransactionResponse } from '../../proto/interfaces/waves/node/grpc/TransactionResponse'
 import { Handler } from './Handler'
-import { DatabaseClient } from '../Clients/DatabaseClient'
-import { BlockchainClient } from '../Clients/BlockchainClient'
 import { Logger } from '../Logger'
 
 const INT = 4
@@ -13,10 +11,6 @@ type PreIncrement = (val: number) => number
 
 export class EventHandler extends Handler {
   private logger = new Logger(EventHandler.name, this.config.app.logs)
-
-  get eventModel() {
-    return this.db.models.eventModel
-  }
 
   async handleUpdate(update: ParsedUpdate) {
     const ids = update.ids.map(Common.normalizeBinaryInput)
@@ -52,11 +46,12 @@ export class EventHandler extends Handler {
       status: itx.application_status
     }
 
-    const exists = await this.eventModel.exists({ txHash })
+    const exists = await this.db.safeFindOne({ txHash }, 'events')
+
     if (exists) return
 
-    await this.eventModel.create(obj)
-    this.logger.log(`Event ${obj.txHash} created`)
+    const success = await this.db.safeInsertOne(obj, 'events')
+    success && this.logger.log(`Event ${obj.txHash} created`)
   }
 
   startPreIncrement(initial: number) {

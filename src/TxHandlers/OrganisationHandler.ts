@@ -9,10 +9,6 @@ interface OrganisationPayload {
 }
 
 export class OrganisationHandler extends Handler {
-  get organisationModel() {
-    return this.db.models.organisationModel
-  }
-
   private logger = new Logger(OrganisationHandler.name, this.config.app.logs)
 
   async handleUpdate(update: ParsedUpdate) {
@@ -27,7 +23,7 @@ export class OrganisationHandler extends Handler {
     const { address, entries } = item
     const payload = this.parseEntries(entries)
 
-    const exists = await this.organisationModel.exists({ address })
+    const exists = await this.db.safeFindOne({ address }, 'organisations')
     const func = exists ? this.updateOrganisation : this.createOrganisation
 
     return await func.bind(this)(address, payload)
@@ -48,12 +44,15 @@ export class OrganisationHandler extends Handler {
 
     const { name, description } = payload
 
-    await this.organisationModel.create({
-      address,
-      name,
-      description,
-      whitelisted: false
-    })
+    await this.db.safeInsertOne(
+      {
+        address,
+        name,
+        description,
+        whitelisted: false
+      },
+      'organisations'
+    )
 
     this.logger.log(`Organisation ${address} created`)
   }
@@ -61,7 +60,7 @@ export class OrganisationHandler extends Handler {
   async updateOrganisation(address: string, payload: OrganisationPayload) {
     const { type, ...update } = payload
 
-    await this.organisationModel.updateOne({ address }, update)
+    await this.db.safeUpdateOne({ address }, update, 'organisations')
     this.logger.log(`Organisation ${address} updated`)
   }
 }

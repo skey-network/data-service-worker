@@ -36,7 +36,7 @@ describe('Database integration', () => {
   let databaseClient: DatabaseClient
 
   beforeAll(async () => {
-    databaseClient = new DatabaseClient(config().db)
+    databaseClient = new DatabaseClient(config())
     await databaseClient.connect()
   })
 

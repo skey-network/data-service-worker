@@ -1,8 +1,6 @@
 import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 import { ACTIVE_KEYWORD, KEY_REGEX } from '../Constants'
 import { Handler } from './Handler'
-import { DatabaseClient } from '../Clients/DatabaseClient'
-import { BlockchainClient } from '../Clients/BlockchainClient'
 import { Logger } from '../Logger'
 
 interface KeyItem {
@@ -20,10 +18,6 @@ const keysMap = Object.freeze({
 export class DeviceHandler extends Handler {
   private logger = new Logger(DeviceHandler.name, this.config.app.logs)
 
-  get deviceModel() {
-    return this.db.models.deviceModel
-  }
-
   async handleUpdate(update: ParsedUpdate) {
     for (const item of update.entries) {
       await this.handleSingleUpdate(item)
@@ -36,7 +30,7 @@ export class DeviceHandler extends Handler {
 
     if (!update && !keyList.length) return
 
-    const device = await this.deviceModel.exists({ address: item.address })
+    const device = await this.db.safeFindOne({ address: item.address }, 'devices')
     const func = device ? this.updateDevice : this.createDevice
 
     await func.bind(this)(item.address, update, keyList)
@@ -47,8 +41,11 @@ export class DeviceHandler extends Handler {
 
     const list = keyList.filter((key) => key.whitelisted).map((key) => key.id)
 
-    await this.deviceModel.create({ ...update, address, keys: list })
-    this.logger.log(`Device ${address} created`)
+    const success = await this.db.safeInsertOne(
+      { ...update, address, keys: list },
+      'devices'
+    )
+    success && this.logger.log(`Device ${address} created`)
   }
 
   async updateDevice(address: string, update: any, keyList: KeyItem[]) {
@@ -59,19 +56,23 @@ export class DeviceHandler extends Handler {
     const $pull = { keys: { $in: blacklisted } }
     const $addToSet = { keys: { $each: whitelisted } }
 
+    const modified = [false, false, false]
+
     if (update) {
-      await this.deviceModel.updateOne({ address }, { $set })
+      modified[0] = await this.db.safeUpdateOne({ address }, { $set }, 'devices')
     }
 
     if (whitelisted.length) {
-      await this.deviceModel.updateOne({ address }, { $addToSet })
+      modified[1] = await this.db.safeUpdateOne({ address }, { $addToSet }, 'devices')
     }
 
     if (blacklisted.length) {
-      await this.deviceModel.updateOne({ address }, { $pull })
+      modified[2] = await this.db.safeUpdateOne({ address }, { $pull }, 'devices')
     }
 
-    this.logger.log(`Device ${address} updated`)
+    if (modified.includes(true)) {
+      this.logger.log(`Device ${address} updated`)
+    }
   }
 
   parseKeyList(entries: ParsedEntry[]): KeyItem[] {

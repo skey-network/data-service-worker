@@ -9,7 +9,7 @@ export class BlockchainContainer extends Container {
 
   constructor(id: number) {
     const ports = BlockchainContainer.getPorts(id)
-
+    console.log(ports)
     super({
       name: `node_${id}`,
       image: 'wavesplatform/wavesnode:latest',

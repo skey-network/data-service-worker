@@ -15,7 +15,12 @@ export const accounts = {
   }
 }
 
-export const lib = getInstance(config().blockchain)
+// export const lib = getInstance(config().blockchain)
+
+export const lib = getInstance({
+  nodeUrl: 'http://localhost:7100',
+  chainId: 'R'
+})
 
 export type IssueTokenParams = Omit<Transactions.IIssueParams, 'chainId'> & {
   seed: string

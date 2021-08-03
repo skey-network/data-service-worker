@@ -16,10 +16,6 @@ export interface SupplierPayload {
 export class SupplierHandler extends Handler {
   private logger = new Logger(SupplierHandler.name, this.config.app.logs)
 
-  get supplierModel() {
-    return this.db.models.supplierModel
-  }
-
   async handleUpdate(update: ParsedUpdate) {
     this.logger.debug(SupplierHandler.name, 'handle height', update.height)
 
@@ -32,7 +28,7 @@ export class SupplierHandler extends Handler {
     const { address, entries } = item
     const payload = this.parseEntries(entries)
 
-    const exists = await this.supplierModel.exists({ address: item.address })
+    const exists = await this.db.safeFindOne({ address: item.address }, 'suppliers')
     const func = exists ? this.updateSupplier : this.createSupplier
 
     await func.bind(this)(address, payload)
@@ -41,16 +37,19 @@ export class SupplierHandler extends Handler {
   async createSupplier(address: string, payload: SupplierPayload) {
     if (payload.type !== 'supplier') return
 
-    await this.supplierModel.create({
-      ...payload,
-      address,
-      devices: payload.devices
-        .filter((device) => device.whitelisted)
-        .map((device) => device.address),
-      whitelisted: false
-    })
+    const success = await this.db.safeInsertOne(
+      {
+        ...payload,
+        address,
+        devices: payload.devices
+          .filter((device) => device.whitelisted)
+          .map((device) => device.address),
+        whitelisted: false
+      },
+      'suppliers'
+    )
 
-    this.logger.log(`Supplier ${address} created`)
+    success && this.logger.log(`Supplier ${address} created`)
   }
 
   async updateSupplier(address: string, payload: SupplierPayload) {
@@ -63,21 +62,25 @@ export class SupplierHandler extends Handler {
     const $pull = { devices: { $in: blacklisted } }
     const $addToSet = { devices: { $each: whitelisted } }
 
+    const modified = [false, false, false]
+
     // Cannot run pull and add$addToSet at the same time?
 
     if (name || description) {
-      await this.supplierModel.updateOne({ address }, { $set })
+      modified[0] = await this.db.safeUpdateOne({ address }, { $set }, 'suppliers')
     }
 
     if (whitelisted.length) {
-      await this.supplierModel.updateOne({ address }, { $addToSet })
+      modified[1] = await this.db.safeUpdateOne({ address }, { $addToSet }, 'suppliers')
     }
 
     if (blacklisted.length) {
-      await this.supplierModel.updateOne({ address }, { $pull })
+      modified[2] = await this.db.safeUpdateOne({ address }, { $pull }, 'suppliers')
     }
 
-    this.logger.log(`Supplier ${address} updated`)
+    if (modified.includes(true)) {
+      this.logger.log(`Supplier ${address} updated`)
+    }
   }
 
   parseEntries(entries: ParsedEntry[]): SupplierPayload {

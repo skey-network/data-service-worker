@@ -17,7 +17,7 @@ export const createTxHandlerTestContext = async <T extends Handler>(
   handlerRef: any
 ): Promise<TxHandlerTestContext<T>> => {
   const grpc = new GrpcClient(config().grpc)
-  const db = new DatabaseClient(config().db)
+  const db = new DatabaseClient(config())
   const blockchain = new BlockchainClient(grpc)
 
   await db.connect()

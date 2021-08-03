@@ -22,7 +22,7 @@ export class Processor implements IProcess {
   }
 
   async init() {
-    this.db = new DatabaseClient(this.config.db, dbDefaultOptions)
+    this.db = new DatabaseClient(this.config, dbDefaultOptions)
     this.grpc = new GrpcClient(this.config.grpc)
     this.blockchain = new BlockchainClient(this.grpc)
 

@@ -80,11 +80,11 @@ export const bToCommonContext = (ctx: Context): CommonContext => {
 }
 
 export const dbToCommonContext = async (db: DatabaseClient): Promise<CommonContext> => {
-  const devices = await db.models.deviceModel.find()
-  const suppliers = await db.models.supplierModel.find()
-  const organisations = await db.models.organisationModel.find()
-  const keys = await db.models.keyModel.find()
-  const events = await db.models.eventModel.find()
+  const devices = await db.models.devices.find()
+  const suppliers = await db.models.suppliers.find()
+  const organisations = await db.models.organisations.find()
+  const keys = await db.models.keys.find()
+  const events = await db.models.events.find()
 
   return {
     devices: sortByAddress(devices.map(toObject)).map((device) => ({
@@ -94,11 +94,11 @@ export const dbToCommonContext = async (db: DatabaseClient): Promise<CommonConte
     suppliers: sortByAddress(
       suppliers
         .map(toObject)
-        .map((supplier) => ({ ...supplier, devices: supplier.devices.sort() }))
+        .map((supplier: any) => ({ ...supplier, devices: supplier.devices.sort() }))
     ),
     organisations: sortByAddress(organisations.map(toObject)),
     keys: sortByAssetId(
-      keys.map(toObject).map((key) => ({ ...key, issueTimestamp: 0 }))
+      keys.map(toObject).map((key: any) => ({ ...key, issueTimestamp: 0 }))
     ) as any,
     events: sortByTxHash(events.map(toObject)) as any
   }

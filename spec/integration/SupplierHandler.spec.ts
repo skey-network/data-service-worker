@@ -104,13 +104,15 @@ describe('SupplierHandler - integration', () => {
     await helper.lib.insertData(args.entries as any, supplier.seed)
     await helper.delay(1000)
 
-    const doc = (await ctx.db.models.supplierModel.findOne({
-      address: supplier.address
-    }))!
+    const doc = (await ctx.db.safeFindOne(
+      {
+        address: supplier.address
+      },
+      'suppliers'
+    ))!
 
     if (!args.expected) {
-      expect(doc).toBe(null)
-      return
+      return expect(doc).toBe(null)
     }
 
     const picked = ((obj) => ({

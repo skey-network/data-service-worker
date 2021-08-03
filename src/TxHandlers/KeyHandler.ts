@@ -7,10 +7,6 @@ import { ParsedUpdate } from '../UpdateParser'
 export class KeyHandler extends Handler {
   private logger = new Logger(KeyHandler.name, this.config.app.logs)
 
-  get keyModel() {
-    return this.db.models.keyModel
-  }
-
   async handleUpdate(update: ParsedUpdate) {
     await this.handleAssetUpdates(update)
     await this.handleBalanceUpdates(update)
@@ -70,14 +66,14 @@ export class KeyHandler extends Handler {
       burned
     }
 
-    const doc = await this.keyModel.findOne({ assetId })
+    const doc = await this.db.safeFindOne({ assetId }, 'keys')
 
     if (doc) {
-      await this.keyModel.updateOne({ assetId }, { owner, burned })
-      this.logger.log(`Key ${assetId} updated`)
+      const success = await this.db.safeUpdateOne({ assetId }, { owner, burned }, 'keys')
+      success && this.logger.log(`Key ${assetId} updated`)
     } else {
-      await this.keyModel.create({ ...obj, owner: obj.issuer })
-      this.logger.log(`Key ${assetId} created`)
+      const success = await this.db.safeInsertOne({ ...obj, owner: obj.issuer }, 'keys')
+      success && this.logger.log(`Key ${assetId} created`)
     }
   }
 
