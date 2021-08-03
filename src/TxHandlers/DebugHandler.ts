@@ -9,7 +9,7 @@ export interface MetaContent {
 }
 
 export class DebugHandler extends Handler {
-  private logger = new Logger(DebugHandler.name)
+  private logger = new Logger(DebugHandler.name, this.config.app.logs)
   private file = './height.txt'
 
   async handleUpdate(update: ParsedUpdate) {

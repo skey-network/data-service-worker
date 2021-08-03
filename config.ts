@@ -28,10 +28,6 @@ export default () =>
       queue: env.REDIS_QUEUE ?? 'default',
       host: env.REDIS_HOST ?? 'localhost',
       port: Number(env.REDIS_PORT ?? '6379')
-    },
-    telegram: {
-      token: env.TELEGRAM_TOKEN ?? 'none',
-      chatId: Number(env.TELEGRAM_CHAT_ID ?? '0')
     }
   } as Config)
 

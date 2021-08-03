@@ -4,7 +4,8 @@ import { delay } from '../Common'
 import { TransactionResponse } from '../../proto/interfaces/waves/node/grpc/TransactionResponse'
 import { GrpcClient } from './GrpcClient'
 import { Logger } from '../Logger'
-import { existsSync, readFileSync } from 'fs'
+
+export type CancellablePromise<T> = Promise<T> & { cancel: () => Promise<void> }
 
 export class BlockchainClient {
   client: GrpcClient
@@ -94,7 +95,7 @@ export class BlockchainClient {
 
     const promise = new Promise<void>((resolve, reject) => {
       call.on('data', (chunk: SubscribeEvent) => {
-        this.logger.debug('Received update, height', chunk.update?.height)
+        this.logger.debug('Received chunk, height', chunk.update?.height)
         callback(chunk)
       })
 
@@ -106,10 +107,16 @@ export class BlockchainClient {
           return resolve()
         }
 
-        // TODO handle errors?
-        // Figure out a better solution
-        process.exit(1)
-        // reject(err)
+        if (!err) {
+          this.logger.error('Received undefined grpc error')
+          this.logger.error('Continuing process ...')
+        }
+
+        this.logger.error('Received grpc error')
+        this.logger.error(err)
+        this.logger.error('Exiting ...')
+
+        reject(err)
       })
     })
 

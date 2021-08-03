@@ -18,7 +18,7 @@ const keysMap = Object.freeze({
 })
 
 export class DeviceHandler extends Handler {
-  private logger = new Logger(DeviceHandler.name)
+  private logger = new Logger(DeviceHandler.name, this.config.app.logs)
 
   get deviceModel() {
     return this.db.models.deviceModel

@@ -2,12 +2,10 @@ import { Logger } from '../Logger'
 import { AssetInfoResponse } from '../Types'
 import { publicKeyToAddress } from '../Common'
 import { Handler } from './Handler'
-import { DatabaseClient } from '../Clients/DatabaseClient'
-import { BlockchainClient } from '../Clients/BlockchainClient'
 import { ParsedUpdate } from '../UpdateParser'
 
 export class KeyHandler extends Handler {
-  private logger = new Logger(KeyHandler.name)
+  private logger = new Logger(KeyHandler.name, this.config.app.logs)
 
   get keyModel() {
     return this.db.models.keyModel

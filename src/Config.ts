@@ -24,8 +24,4 @@ export interface Config {
     host: string
     port: number
   }
-  telegram?: {
-    token: string
-    chatId: number
-  }
 }

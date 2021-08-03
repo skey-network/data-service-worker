@@ -8,6 +8,7 @@ import { IProcess, JobData } from '../Types'
 import { GrpcClient } from '../Clients/GrpcClient'
 import { BlockchainClient } from '../Clients/BlockchainClient'
 import { getClassByName } from '../HandlerManager'
+import { Logger } from '../Logger'
 
 export class Processor implements IProcess {
   config: Config
@@ -33,12 +34,19 @@ export class Processor implements IProcess {
     await this.db.connect()
   }
 
+  get logger() {
+    return new Logger(Processor.name, this.config.app.logs)
+  }
+
   async destroy() {
     await this.queue.close()
     await this.db.disconnect()
   }
 
   async process(job: Queue.Job<JobData>) {
+    this.logger.debug(`Processing update`, job.data.update.height)
+    this.logger.debug(`Using handler - `, job.data.handler)
+
     const handlerClass = getClassByName(job.data.handler)!
     const handler = new handlerClass(this.config, this.db, this.blockchain)
 

@@ -43,6 +43,7 @@ export const removeContainers = async (containers: Container[]) => {
   await Promise.all(
     containers.map(async (container) => {
       await container.rm(true)
+      container.removeVolume()
     })
   )
 }

@@ -6,8 +6,9 @@
   "scripts": {
     "start": "npm run build && node dist/src/main.js",
     "build": "rm -rf dist && tsc",
-    "test": "jest --verbose --notify --config ./spec/config.json",
-    "test:watch": "jest --config ./spec/config.json  --watch"
+    "test:unit": "jest --config ./spec/unit.config.json",
+    "test:integration": "jest --config ./spec/integration.config.json",
+    "test:e2e": "jest --runInBand --config ./spec/e2e.config.json"
   },
   "keywords": [],
   "author": "",

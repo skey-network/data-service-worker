@@ -15,10 +15,20 @@ export const accounts = {
   }
 }
 
-export const lib = getInstance({
-  nodeUrl: 'http://localhost:7100',
-  chainId: 'R'
-})
+export const lib = getInstance(config().blockchain)
+
+export type IssueTokenParams = Omit<Transactions.IIssueParams, 'chainId'> & {
+  seed: string
+}
+
+export const issueToken = async (input: IssueTokenParams) => {
+  const tx = Transactions.issue(
+    { ...input, chainId: config().blockchain.chainId },
+    input.seed
+  )
+
+  return await lib.broadcast(tx)
+}
 
 export const delay = lib.delay
 
@@ -32,13 +42,6 @@ export const sponsor = (address: string, amount = 1) =>
 
 export const createMultipleAccounts = (amount: number) => {
   return [...Array(amount)].map(() => createAccount())
-}
-
-export const getListenerInstance = async (
-  handler: (update: ParsedUpdate) => Promise<void>
-) => {
-  // const height = await Blockchain.fetchHeight()
-  // return Blockchain.subscribe((chunk) => handler(parseUpdate(chunk)!), height ?? 1).cancel
 }
 
 export const burnKey = async (assetId: string, seed: string) => {

@@ -1,3 +1,5 @@
+import '../setup'
+
 import Queue, { Queue as QueueType } from 'bull'
 import config from '../../config'
 

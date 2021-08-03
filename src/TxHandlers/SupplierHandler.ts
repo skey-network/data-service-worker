@@ -1,5 +1,5 @@
 import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
-import { ACTIVE_KEYWORD, DEVICE_PREFIX, DEVICE_REGEX } from '../Constants'
+import { DEVICE_PREFIX, DEVICE_REGEX } from '../Constants'
 import { Logger } from '../Logger'
 import { Handler } from './Handler'
 
@@ -14,7 +14,7 @@ export interface SupplierPayload {
 }
 
 export class SupplierHandler extends Handler {
-  private logger = new Logger(SupplierHandler.name)
+  private logger = new Logger(SupplierHandler.name, this.config.app.logs)
 
   get supplierModel() {
     return this.db.models.supplierModel
@@ -33,17 +33,14 @@ export class SupplierHandler extends Handler {
     const payload = this.parseEntries(entries)
 
     const exists = await this.supplierModel.exists({ address: item.address })
+    const func = exists ? this.updateSupplier : this.createSupplier
 
-    if (exists) {
-      return await this.updateSupplier(address, payload)
-    }
-
-    if (payload.type === 'supplier') {
-      return await this.createSupplier(address, payload)
-    }
+    await func.bind(this)(address, payload)
   }
 
   async createSupplier(address: string, payload: SupplierPayload) {
+    if (payload.type !== 'supplier') return
+
     await this.supplierModel.create({
       ...payload,
       address,

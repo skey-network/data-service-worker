@@ -15,7 +15,6 @@ const parseArgs = () => {
 const app = new App(config())
 
 app.init(parseArgs()).then(() => {
-  // DEBUG
   setInterval(async () => {
     const data = await app.listener.queue.getJobCounts()
     console.log(data)

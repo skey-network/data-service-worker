@@ -1,7 +1,5 @@
 import { ParsedUpdate, EntriesForAddress, ParsedEntry } from '../UpdateParser'
 import { Handler } from './Handler'
-import { DatabaseClient } from '../Clients/DatabaseClient'
-import { BlockchainClient } from '../Clients/BlockchainClient'
 import { Logger } from '../Logger'
 
 interface OrganisationPayload {
@@ -15,7 +13,7 @@ export class OrganisationHandler extends Handler {
     return this.db.models.organisationModel
   }
 
-  private logger = new Logger(OrganisationHandler.name)
+  private logger = new Logger(OrganisationHandler.name, this.config.app.logs)
 
   async handleUpdate(update: ParsedUpdate) {
     this.logger.debug(OrganisationHandler.name, 'handle height', update.height)
@@ -47,6 +45,7 @@ export class OrganisationHandler extends Handler {
 
   async createOrganisation(address: string, payload: OrganisationPayload) {
     if (payload.type !== 'organisation') return
+
     const { name, description } = payload
 
     await this.organisationModel.create({
@@ -55,13 +54,14 @@ export class OrganisationHandler extends Handler {
       description,
       whitelisted: false
     })
+
     this.logger.log(`Organisation ${address} created`)
   }
 
   async updateOrganisation(address: string, payload: OrganisationPayload) {
-    const { name, description } = payload
+    const { type, ...update } = payload
 
-    await this.organisationModel.updateOne({ address }, { name, description })
+    await this.organisationModel.updateOne({ address }, update)
     this.logger.log(`Organisation ${address} updated`)
   }
 }

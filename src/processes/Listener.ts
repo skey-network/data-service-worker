@@ -5,6 +5,7 @@ import Queue from 'bull'
 import { parseUpdate } from '../UpdateParser'
 import { IProcess, JobData, SubscribeEvent } from '../Types'
 import { getClasses } from '../HandlerManager'
+import { Logger } from '../Logger'
 
 export class Listener implements IProcess {
   config: Config
@@ -22,17 +23,25 @@ export class Listener implements IProcess {
     this.queue = new Queue(queue, { redis: { host, port } })
   }
 
+  get logger() {
+    return new Logger(Listener.name, this.config.app.logs)
+  }
+
   async init(height?: number) {
     const currentHeight = await this.blockchain.fetchHeight()
+
     if (!currentHeight) {
-      console.error('Cannot fetch currentHeight')
-      process.exit(1)
+      throw new Error('Cannot fetch currentHeight')
     }
 
-    this.cancelListener = this.blockchain.subscribe(
+    const promise = this.blockchain.subscribe(
       this.handleChunk.bind(this),
       height ?? currentHeight
-    ).cancel
+    )
+
+    this.cancelListener = promise.cancel
+
+    promise.catch(() => process.exit(10))
   }
 
   async destroy() {
@@ -42,7 +51,11 @@ export class Listener implements IProcess {
 
   async handleChunk(chunk: SubscribeEvent) {
     const update = parseUpdate(chunk)
-    if (!update) return
+
+    if (!update) {
+      this.logger.debug('No updates on height', chunk.update?.height)
+      return
+    }
 
     for (const { name } of getClasses()) {
       await this.queue.add({ update, handler: name })

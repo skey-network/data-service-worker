@@ -7,13 +7,11 @@ import {
   ORGANISATION_PREFIX
 } from '../Constants'
 import { Handler } from './Handler'
-import { DatabaseClient } from '../Clients/DatabaseClient'
-import { BlockchainClient } from '../Clients/BlockchainClient'
 import { Logger } from '../Logger'
 import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 
 export class DappFatherHandler extends Handler {
-  private logger = new Logger(DappFatherHandler.name)
+  private logger = new Logger(DappFatherHandler.name, this.config.app.logs)
 
   get supplierModel() {
     return this.db.models.supplierModel
@@ -31,8 +29,6 @@ export class DappFatherHandler extends Handler {
 
   async handleSingleUpdate({ address, entries }: EntriesForAddress) {
     const { dappFatherAddress } = config().blockchain
-    this.logger.debug('dappFather address', dappFatherAddress)
-    this.logger.debug('entry address', dappFatherAddress)
 
     if (address !== dappFatherAddress) return
 

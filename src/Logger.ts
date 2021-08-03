@@ -1,10 +1,12 @@
 import chalk from 'chalk'
 
 export class Logger {
-  private prefix: string = 'Default'
+  private prefix = 'Default'
+  private enabled: boolean
 
-  constructor(prefix: string) {
+  constructor(prefix: string, enabled = true) {
     this.prefix = prefix
+    this.enabled = enabled
   }
 
   public log(...args: any) {
@@ -28,7 +30,7 @@ export class Logger {
   }
 
   private write(type: string, prefix: string, ...args: any) {
-    // if (!config().app.logs) return
+    if (!this.enabled) return
 
     const time = chalk.gray(new Date().toISOString())
 

@@ -60,7 +60,7 @@ export class Factory {
     await this.ctx.dappFather.whitelistOrganisations(
       this.ctx.organisations.map((organisation) => organisation.address)
     )
-
+4
     await this.connectDevices()
     await this.createKeys()
     await this.createEvents()

@@ -12,7 +12,7 @@ const BYTE = 1
 type PreIncrement = (val: number) => number
 
 export class EventHandler extends Handler {
-  private logger = new Logger(EventHandler.name)
+  private logger = new Logger(EventHandler.name, this.config.app.logs)
 
   get eventModel() {
     return this.db.models.eventModel
