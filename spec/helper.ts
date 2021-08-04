@@ -30,7 +30,7 @@ export const issueToken = async (input: IssueTokenParams) => {
     input.seed
   )
 
-  return await lib.broadcast(tx)
+  return await lib.broadcast(tx as any) // any fixes problem with docker build
 }
 
 export const delay = lib.delay
