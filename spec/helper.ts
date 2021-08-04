@@ -1,7 +1,5 @@
 import { getInstance } from 'skey-lib'
 import config from '../config'
-import * as Blockchain from '../src/Clients/BlockchainClient'
-import { ParsedUpdate, parseUpdate } from '../src/UpdateParser'
 import * as Transactions from '@waves/waves-transactions'
 
 export const accounts = {
@@ -15,12 +13,12 @@ export const accounts = {
   }
 }
 
-// export const lib = getInstance(config().blockchain)
+export const lib = getInstance(config().blockchain)
 
-export const lib = getInstance({
-  nodeUrl: 'http://localhost:7100',
-  chainId: 'R'
-})
+// export const lib = getInstance({
+//   nodeUrl: 'http://localhost:7100',
+//   chainId: 'R'
+// })
 
 export type IssueTokenParams = Omit<Transactions.IIssueParams, 'chainId'> & {
   seed: string

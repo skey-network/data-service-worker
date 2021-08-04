@@ -1,4 +1,4 @@
-import { sponsor } from '../helper'
+import { accounts } from '../helper'
 import { DappFather } from './models/DappFather'
 import { Config } from '../../src/Config'
 import { Context } from './models/Context'
@@ -60,7 +60,7 @@ export class Factory {
     await this.ctx.dappFather.whitelistOrganisations(
       this.ctx.organisations.map((organisation) => organisation.address)
     )
-4
+
     await this.connectDevices()
     await this.createKeys()
     await this.createEvents()
@@ -109,7 +109,13 @@ export class Factory {
     )
   }
 
+  // TODO refactor this
+
   async sponsorAccounts() {
-    await Promise.all(this.ctx.accounts.map((acc) => sponsor(acc.address, 1)))
+    await Promise.all(
+      this.ctx.accounts.map((acc) =>
+        this.lib.transfer(acc.address, 1, accounts.genesis.seed)
+      )
+    )
   }
 }
