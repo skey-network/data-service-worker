@@ -7,7 +7,7 @@ export interface SupplierPayload {
   name?: string
   description?: string
   type?: string
-  devices: {
+  whitelist: {
     address: string
     whitelisted: boolean
   }[]
@@ -41,7 +41,7 @@ export class SupplierHandler extends Handler {
       {
         ...payload,
         address,
-        devices: payload.devices
+        whitelist: payload.whitelist
           .filter((device) => device.whitelisted)
           .map((device) => device.address),
         whitelisted: false
@@ -53,14 +53,14 @@ export class SupplierHandler extends Handler {
   }
 
   async updateSupplier(address: string, payload: SupplierPayload) {
-    const { name, description, devices } = payload
+    const { name, description, whitelist } = payload
 
-    const whitelisted = devices.filter((d) => d.whitelisted).map((d) => d.address)
-    const blacklisted = devices.filter((d) => !d.whitelisted).map((d) => d.address)
+    const whitelisted = whitelist.filter((d) => d.whitelisted).map((d) => d.address)
+    const blacklisted = whitelist.filter((d) => !d.whitelisted).map((d) => d.address)
 
     const $set = { name, description }
-    const $pull = { devices: { $in: blacklisted } }
-    const $addToSet = { devices: { $each: whitelisted } }
+    const $pull = { whitelist: { $in: blacklisted } }
+    const $addToSet = { whitelist: { $each: whitelisted } }
 
     const modified = [false, false, false]
 
@@ -99,6 +99,6 @@ export class SupplierHandler extends Handler {
         whitelisted: !!value
       }))
 
-    return { ...info, devices: list }
+    return { ...info, whitelist: list }
   }
 }

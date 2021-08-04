@@ -21,10 +21,7 @@ export class Supplier {
   description: string
 
   @Prop([String])
-  devices: string[]
-
-  @Prop([String])
-  organisations: string[]
+  whitelist: string[]
 
   @Prop(Date)
   createdAt: Date

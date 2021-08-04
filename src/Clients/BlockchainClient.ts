@@ -60,24 +60,6 @@ export class BlockchainClient {
     })
   }
 
-  watchHeight() {
-    const MAX_DIFFERENCE = 120 * 1000
-
-    // setInterval(() => {
-    //   if (!existsSync('./height.txt')) return
-
-    //   const file = readFileSync('./height.txt', 'utf-8')
-    //   const timestamp = Number(JSON.parse(file)?.timestamp ?? '0')
-
-    //   if (Date.now() - timestamp < MAX_DIFFERENCE) return
-
-    //   console.error(
-    //     `Current time is ${Date.now()}, last update was at ${timestamp}. Exiting process with error code.`
-    //   )
-    //   process.exit(1)
-    // }, 5000)
-  }
-
   subscribe(
     callback: (chunk: SubscribeEvent) => any,
     fromHeight: number,

@@ -27,6 +27,13 @@ export const createConfig = (e2e: E2eContext): Config => ({
     queue: 'default',
     host: 'localhost',
     port: e2e.redis.port
+  },
+  test: {
+    dappFatherSeed:
+      'seed seed seed seed seed seed seed seed seed seed seed seed seed seed seed',
+    genesisSeed:
+      'seed seed seed seed seed seed seed seed seed seed seed seed seed seed seed',
+    integrationDelay: 0
   }
 })
 

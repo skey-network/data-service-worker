@@ -1,14 +1,17 @@
 import '../setup'
 
-import * as helper from '../helper'
 import { SupplierHandler } from '../../src/TxHandlers/SupplierHandler'
 import {
   createTxHandlerTestContext,
   removeTxHandlerTestContext,
   TxHandlerTestContext
-} from './TxHandlerTestHelper'
+} from './TxHandlerTestContext'
+import config from '../../config'
+import { getInstance } from '../ExtendedLib'
 
-const supplier = helper.createAccount()
+const lib = getInstance(config())
+
+const supplier = lib.createAccount()
 
 const cases = [
   {
@@ -24,7 +27,7 @@ const cases = [
       name: undefined,
       description: undefined,
       whitelisted: false,
-      devices: []
+      whitelist: []
     }
   },
   {
@@ -38,7 +41,7 @@ const cases = [
       name: 'test_name',
       description: 'test_desc',
       whitelisted: false,
-      devices: []
+      whitelist: []
     }
   },
   {
@@ -52,7 +55,7 @@ const cases = [
       name: 'test_name',
       description: 'test_desc',
       whitelisted: false,
-      devices: [
+      whitelist: [
         '3M2Zy7xEUVgS96dKwrimaFBbZH7AViVpPSv',
         '3MQHyskVP95vCVbeKbVATrT4MhBhroDbGSj'
       ]
@@ -69,7 +72,7 @@ const cases = [
       name: 'test_name',
       description: 'test_desc',
       whitelisted: false,
-      devices: []
+      whitelist: []
     }
   },
   {
@@ -83,7 +86,7 @@ const cases = [
       name: 'test_name',
       description: 'test_desc',
       whitelisted: false,
-      devices: []
+      whitelist: []
     }
   }
 ]
@@ -93,7 +96,7 @@ describe('SupplierHandler - integration', () => {
 
   beforeAll(async () => {
     ctx = await createTxHandlerTestContext(SupplierHandler)
-    await helper.sponsor(supplier.address)
+    await lib.sponsor(supplier.address)
   })
 
   afterAll(async () => {
@@ -101,8 +104,8 @@ describe('SupplierHandler - integration', () => {
   })
 
   it.each(cases)('%s', async (args) => {
-    await helper.lib.insertData(args.entries as any, supplier.seed)
-    await helper.delay(1000)
+    await lib.insertData(args.entries as any, supplier.seed)
+    await lib.delay(1000)
 
     const doc = (await ctx.db.safeFindOne(
       {
@@ -120,7 +123,7 @@ describe('SupplierHandler - integration', () => {
       name: obj.name,
       description: obj.description,
       whitelisted: obj.whitelisted,
-      devices: Array.from(obj.devices)
+      whitelist: Array.from(obj.whitelist)
     }))(doc)
 
     expect(picked).toEqual(args.expected)

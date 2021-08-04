@@ -1,12 +1,15 @@
 import '../setup'
 
-import * as helper from '../helper'
 import { DeviceHandler } from '../../src/TxHandlers/DeviceHandler'
 import {
   createTxHandlerTestContext,
   removeTxHandlerTestContext,
   TxHandlerTestContext
-} from './TxHandlerTestHelper'
+} from './TxHandlerTestContext'
+import config from '../../config'
+import { getInstance } from '../ExtendedLib'
+
+const lib = getInstance(config())
 
 const cases = [
   {
@@ -103,12 +106,12 @@ describe('DeviceHandler', () => {
   const getOne = async (address: string) =>
     ctx.db.connection.collection('devices').findOne({ address })
 
-  const device = helper.createAccount()
+  const device = lib.createAccount()
 
   beforeAll(async () => {
     ctx = await createTxHandlerTestContext(DeviceHandler)
 
-    await helper.sponsor(device.address)
+    await lib.sponsor(device.address)
   })
 
   afterAll(async () => {
@@ -116,7 +119,7 @@ describe('DeviceHandler', () => {
   })
 
   it.each(cases)('%s', async (args) => {
-    await helper.lib.insertData(args.entries(device.address), device.seed)
+    await lib.insertData(args.entries(device.address), device.seed)
 
     const doc = await getOne(device.address)
 

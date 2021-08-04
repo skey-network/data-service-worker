@@ -1,10 +1,12 @@
 import '../setup'
 
-import * as helper from '../helper'
 import { BlockchainClient } from '../../src/Clients/BlockchainClient'
 import { SubscribeEvent } from '../../src/Types'
 import { GrpcClient } from '../../src/Clients/GrpcClient'
 import config from '../../config'
+import { getInstance } from '../ExtendedLib'
+
+const lib = getInstance(config())
 
 describe('Blockchain', () => {
   let grpcClient: GrpcClient
@@ -26,7 +28,7 @@ describe('Blockchain', () => {
     let assetId = ''
 
     beforeAll(async () => {
-      assetId = await helper.lib.generateKey('aaa', 1000, helper.accounts.genesis.seed)
+      assetId = await lib.generateKey('aaa', 1000, config().test.genesisSeed)
     })
 
     it('returns object', async () => {
@@ -52,7 +54,7 @@ describe('Blockchain', () => {
         10
       )
 
-      await helper.delay(2000)
+      await lib.delay(2000)
 
       expect(chunks.length).toBe(10)
       expect(chunks[0].update?.id).toBeDefined()
@@ -63,7 +65,7 @@ describe('Blockchain', () => {
 
       blockchainClient.subscribe(callback, 5, 7)
 
-      await helper.delay(1000)
+      await lib.delay(1000)
 
       expect(callback).toHaveBeenCalledTimes(3)
       expect(callback.mock.calls[1][0]?.update?.id).toBeDefined()

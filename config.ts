@@ -28,6 +28,11 @@ export default () =>
       queue: env.REDIS_QUEUE ?? 'default',
       host: env.REDIS_HOST ?? 'localhost',
       port: Number(env.REDIS_PORT ?? '6379')
+    },
+    test: {
+      dappFatherSeed: env.TEST_DAPP_FATHER_SEED ?? '',
+      genesisSeed: env.TEST_GENESIS_SEED ?? '',
+      integrationDelay: Number(env.TEST_INTEGRATION_DELAY ?? '1200')
     }
   } as Config)
 

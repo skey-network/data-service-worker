@@ -1,4 +1,3 @@
-import { accounts } from '../helper'
 import { DappFather } from './models/DappFather'
 import { Config } from '../../src/Config'
 import { Context } from './models/Context'
@@ -9,7 +8,7 @@ import { Device } from './models/Device'
 import { User } from './models/User'
 import { randElement } from './FactoryHelpers'
 import { Key } from './models/Key'
-import { getInstance } from 'skey-lib'
+import { getInstance } from '../ExtendedLib'
 import { Event } from './models/Event'
 
 export const createBundle = async (config: Config, amount: number) => {
@@ -31,10 +30,7 @@ export class Factory {
   }
 
   get lib() {
-    return getInstance({
-      nodeUrl: this.config.blockchain.nodeUrl,
-      chainId: this.config.blockchain.chainId
-    })
+    return getInstance(this.config)
   }
 
   createBundle(amount: number) {
@@ -109,13 +105,7 @@ export class Factory {
     )
   }
 
-  // TODO refactor this
-
   async sponsorAccounts() {
-    await Promise.all(
-      this.ctx.accounts.map((acc) =>
-        this.lib.transfer(acc.address, 1, accounts.genesis.seed)
-      )
-    )
+    await Promise.all(this.ctx.accounts.map((acc) => this.lib.sponsor(acc.address)))
   }
 }

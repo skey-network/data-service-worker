@@ -43,11 +43,15 @@ export const bToCommonContext = (ctx: Context): CommonContext => {
     suppliers: sortByAddress(
       ctx.suppliers
         .map((supplier) => excludeProps({ ...supplier }, ['config', 'seed']))
-        .map((supplier) => ({
-          ...supplier,
-          devices: supplier.devices.sort(),
-          whitelisted: ctx.dappFather.suppliers.includes(supplier.address)
-        }))
+        .map(
+          (supplier) =>
+            ({
+              ...supplier,
+              devices: null,
+              whitelist: supplier.devices.sort(),
+              whitelisted: ctx.dappFather.suppliers.includes(supplier.address)
+            } as any)
+        )
     ),
     organisations: sortByAddress(
       ctx.organisations
@@ -92,9 +96,15 @@ export const dbToCommonContext = async (db: DatabaseClient): Promise<CommonConte
       custom: JSON.parse(device.custom!)
     })) as any,
     suppliers: sortByAddress(
-      suppliers
-        .map(toObject)
-        .map((supplier: any) => ({ ...supplier, devices: supplier.devices.sort() }))
+      suppliers.map(toObject).map(
+        (supplier: any) =>
+          ({
+            ...supplier,
+            devices: null,
+            whitelist: supplier.whitelist.sort(),
+            organisations: []
+          } as any)
+      )
     ),
     organisations: sortByAddress(organisations.map(toObject)),
     keys: sortByAssetId(

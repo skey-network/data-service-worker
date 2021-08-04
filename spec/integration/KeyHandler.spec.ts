@@ -1,12 +1,15 @@
 import '../setup'
 
-import * as helper from '../helper'
 import { KeyHandler } from '../../src/TxHandlers/KeyHandler'
 import {
   createTxHandlerTestContext,
   removeTxHandlerTestContext,
   TxHandlerTestContext
-} from './TxHandlerTestHelper'
+} from './TxHandlerTestContext'
+import config from '../../config'
+import { getInstance } from '../ExtendedLib'
+
+const lib = getInstance(config())
 
 describe('KeyHandler', () => {
   let ctx: TxHandlerTestContext<KeyHandler>
@@ -15,20 +18,20 @@ describe('KeyHandler', () => {
     ctx.db.connection.collection('keys').findOne({ assetId })
 
   const validKey = {
-    device: helper.createAccount().address,
+    device: lib.createAccount().address,
     validTo: 9999,
     name: 'test_key',
     assetId: ''
   }
 
-  const user = helper.createAccount()
-  const issuer = helper.createAccount()
+  const user = lib.createAccount()
+  const issuer = lib.createAccount()
 
   beforeAll(async () => {
     ctx = await createTxHandlerTestContext(KeyHandler)
 
-    await helper.sponsor(issuer.address, 10)
-    await helper.sponsor(user.address)
+    await lib.sponsor(issuer.address, 10)
+    await lib.sponsor(user.address)
   })
 
   afterAll(async () => {
@@ -36,14 +39,14 @@ describe('KeyHandler', () => {
   })
 
   it('create valid key', async () => {
-    validKey.assetId = await helper.lib.generateKey(
+    validKey.assetId = await lib.generateKey(
       validKey.device,
       validKey.validTo,
       issuer.seed,
       validKey.name
     )
 
-    await helper.delay(1000)
+    await lib.delay(1000)
 
     const doc = await getOne(validKey.assetId)
 
@@ -58,7 +61,7 @@ describe('KeyHandler', () => {
   })
 
   it('invalid quantity', async () => {
-    const id = await helper.issueToken({
+    const id = await lib.issueToken({
       quantity: 1000,
       decimals: 0,
       name: 'invalid_key',
@@ -73,7 +76,7 @@ describe('KeyHandler', () => {
   })
 
   it('invalid device', async () => {
-    const id = await helper.issueToken({
+    const id = await lib.issueToken({
       quantity: 1,
       decimals: 0,
       name: 'invalid_key',
@@ -88,7 +91,7 @@ describe('KeyHandler', () => {
   })
 
   it('invalid decimals', async () => {
-    const id = await helper.issueToken({
+    const id = await lib.issueToken({
       quantity: 1,
       decimals: 4,
       name: 'invalid_key',
@@ -104,7 +107,7 @@ describe('KeyHandler', () => {
   })
 
   it('invalid reissuable', async () => {
-    const id = await helper.issueToken({
+    const id = await lib.issueToken({
       quantity: 1,
       decimals: 0,
       name: 'invalid_key',
@@ -120,9 +123,9 @@ describe('KeyHandler', () => {
   })
 
   it('transfer key', async () => {
-    await helper.lib.transferKey(user.address, validKey.assetId, issuer.seed)
+    await lib.transferKey(user.address, validKey.assetId, issuer.seed)
 
-    await helper.delay(1000)
+    await lib.delay(1000)
 
     const doc = await getOne(validKey.assetId)
 
@@ -130,9 +133,9 @@ describe('KeyHandler', () => {
   })
 
   it('transfer key back', async () => {
-    await helper.lib.transferKey(issuer.address, validKey.assetId, user.seed)
+    await lib.transferKey(issuer.address, validKey.assetId, user.seed)
 
-    await helper.delay(1000)
+    await lib.delay(1000)
 
     const doc = await getOne(validKey.assetId)
 
@@ -140,9 +143,9 @@ describe('KeyHandler', () => {
   })
 
   it('burn key', async () => {
-    await helper.burnKey(validKey.assetId, issuer.seed)
+    await lib.burnKey(validKey.assetId, issuer.seed)
 
-    await helper.delay(1000)
+    await lib.delay(1000)
 
     const doc = await getOne(validKey.assetId)
 

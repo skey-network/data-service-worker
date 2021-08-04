@@ -1,12 +1,15 @@
 import '../setup'
 
-import * as helper from '../helper'
 import { OrganisationHandler } from '../../src/TxHandlers/OrganisationHandler'
 import {
   createTxHandlerTestContext,
   removeTxHandlerTestContext,
   TxHandlerTestContext
-} from './TxHandlerTestHelper'
+} from './TxHandlerTestContext'
+import config from '../../config'
+import { getInstance } from '../ExtendedLib'
+
+const lib = getInstance(config())
 
 const cases = [
   {
@@ -56,14 +59,14 @@ const cases = [
 describe('OrganisationHandler - integration', () => {
   let ctx: TxHandlerTestContext<OrganisationHandler>
 
-  const org = helper.createAccount()
-  const other = helper.createAccount()
+  const org = lib.createAccount()
+  const other = lib.createAccount()
 
   beforeAll(async () => {
     ctx = await createTxHandlerTestContext(OrganisationHandler)
 
-    await helper.sponsor(org.address)
-    await helper.sponsor(other.address)
+    await lib.sponsor(org.address)
+    await lib.sponsor(other.address)
   })
 
   afterAll(async () => {
@@ -71,7 +74,7 @@ describe('OrganisationHandler - integration', () => {
   })
 
   it.each(cases)('%s', async (args) => {
-    await helper.lib.insertData(args.entries(org.address), org.seed)
+    await lib.insertData(args.entries(org.address), org.seed)
 
     const doc = (await ctx.db.connection
       .collection('organisations')

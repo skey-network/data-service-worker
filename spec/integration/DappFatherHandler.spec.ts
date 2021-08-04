@@ -1,15 +1,18 @@
 import '../setup'
 
-import * as helper from '../helper'
 import { DappFatherHandler } from '../../src/TxHandlers/DappFatherHandler'
 import {
   createTxHandlerTestContext,
   removeTxHandlerTestContext,
   TxHandlerTestContext
-} from './TxHandlerTestHelper'
+} from './TxHandlerTestContext'
+import { getInstance } from '../ExtendedLib'
+import config from '../../config'
 
-const supplier = helper.createAccount().address
-const organisation = helper.createAccount().address
+const lib = getInstance(config())
+
+const supplier = lib.createAccount().address
+const organisation = lib.createAccount().address
 
 const cases = [
   {
@@ -87,7 +90,7 @@ describe('DappFatherHandler - integration', () => {
 
   beforeAll(async () => {
     ctx = await createTxHandlerTestContext(DappFatherHandler)
-    await helper.sponsor(helper.accounts.dappFather.address)
+    await lib.sponsor(config().blockchain.dappFatherAddress)
   })
 
   afterAll(async () => {
@@ -95,9 +98,9 @@ describe('DappFatherHandler - integration', () => {
   })
 
   it.each(cases)('%s', async (args) => {
-    await helper.lib.insertData(args.entries, helper.accounts.dappFather.seed)
+    await lib.insertData(args.entries, config().test.dappFatherSeed)
 
-    await helper.delay(1000)
+    await lib.delay(1000)
 
     const doc = (await ctx.db.connection
       .collection(args.collection)
