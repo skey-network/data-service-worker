@@ -4,17 +4,22 @@ import { delay } from '../Common'
 import { TransactionResponse } from '../../proto/interfaces/waves/node/grpc/TransactionResponse'
 import { GrpcClient } from './GrpcClient'
 import { Logger } from '../Logger'
+import { Config } from '../Config'
 
 export type CancellablePromise<T> = Promise<T> & { cancel: () => Promise<void> }
 
 export class BlockchainClient {
   client: GrpcClient
+  config: Config
 
-  constructor(client: GrpcClient) {
+  constructor(client: GrpcClient, config: Config) {
     this.client = client
+    this.config = config
   }
 
-  private logger = new Logger(BlockchainClient.name)
+  get logger() {
+    return new Logger(BlockchainClient.name, this.config.app.logs)
+  }
 
   fetchAsset(assetId: string) {
     return new Promise<AssetInfoResponse | null>((resolve) => {
@@ -65,8 +70,11 @@ export class BlockchainClient {
     fromHeight: number,
     toHeight?: number
   ) {
-    const CANCEL_TIMEOUT = 300
     const CANCEL_MESSAGE = '1 CANCELLED: Cancelled on client'
+    const CONNECTION_DROPPED_MESSAGE = '14 UNAVAILABLE: Connection dropped'
+    const CANCEL_TIMEOUT = 500
+    const TIMER_INTERVAL = 100
+    const MAX_DELAY_SECONDS = 15
 
     const request: SubscribeRequest = {
       from_height: fromHeight,
@@ -75,8 +83,23 @@ export class BlockchainClient {
 
     const call = this.client.blockchainUpdatesApiClient.subscribe(request)
 
+    let lastTimestamp = Date.now()
+    let timerHandle: NodeJS.Timeout
+
     const promise = new Promise<void>((resolve, reject) => {
+      timerHandle = setInterval(async () => {
+        if (lastTimestamp + MAX_DELAY_SECONDS * 1000 < Date.now()) {
+          this.logger.error('No updates received in', MAX_DELAY_SECONDS, 'seconds')
+          this.logger.error('Dropping connection ...')
+
+          clearInterval(timerHandle)
+          reject('no updates')
+        }
+      }, TIMER_INTERVAL)
+
       call.on('data', (chunk: SubscribeEvent) => {
+        lastTimestamp = Date.now()
+
         this.logger.debug('Received chunk, height', chunk.update?.height)
         callback(chunk)
       })
@@ -89,6 +112,11 @@ export class BlockchainClient {
           return resolve()
         }
 
+        if (err.message === CONNECTION_DROPPED_MESSAGE) {
+          this.logger.error('Grpc connection lost')
+          return reject()
+        }
+
         if (!err) {
           this.logger.error('Received undefined grpc error')
           this.logger.error('Continuing process ...')
@@ -96,14 +124,13 @@ export class BlockchainClient {
 
         this.logger.error('Received grpc error')
         this.logger.error(err)
-        this.logger.error('Exiting ...')
 
         reject(err)
       })
     })
 
-    // Use it to avoid promise leaking while testing
     const cancel = async () => {
+      clearInterval(timerHandle)
       call.cancel()
       await delay(CANCEL_TIMEOUT)
     }

@@ -14,7 +14,7 @@ describe('Blockchain', () => {
 
   beforeAll(async () => {
     grpcClient = new GrpcClient(config().grpc)
-    blockchainClient = new BlockchainClient(grpcClient)
+    blockchainClient = new BlockchainClient(grpcClient, config())
   })
 
   describe('fetchHeight', () => {

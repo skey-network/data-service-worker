@@ -18,7 +18,7 @@ export const createTxHandlerTestContext = async <T extends Handler>(
 ): Promise<TxHandlerTestContext<T>> => {
   const grpc = new GrpcClient(config().grpc)
   const db = new DatabaseClient(config())
-  const blockchain = new BlockchainClient(grpc)
+  const blockchain = new BlockchainClient(grpc, config())
 
   await db.connect()
   const height = await blockchain.fetchHeight()

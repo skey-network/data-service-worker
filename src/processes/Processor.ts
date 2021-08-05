@@ -24,7 +24,7 @@ export class Processor implements IProcess {
   async init() {
     this.db = new DatabaseClient(this.config, dbDefaultOptions)
     this.grpc = new GrpcClient(this.config.grpc)
-    this.blockchain = new BlockchainClient(this.grpc)
+    this.blockchain = new BlockchainClient(this.grpc, this.config)
 
     const { host, port, queue } = this.config.redis
     this.queue = new Queue(queue, { redis: { host, port } })

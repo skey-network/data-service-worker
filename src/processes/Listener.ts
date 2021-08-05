@@ -17,11 +17,12 @@ export class Listener implements IProcess {
   queue: Queue.Queue<JobData>
   meta: MetaClient
   cancelListener: () => Promise<void>
+  promise: Promise<void>
 
   constructor(config: Config) {
     this.config = config
     this.grpc = new GrpcClient(this.config.grpc)
-    this.blockchain = new BlockchainClient(this.grpc)
+    this.blockchain = new BlockchainClient(this.grpc, this.config)
     this.db = new DatabaseClient(this.config)
 
     const { host, port, queue } = this.config.redis
@@ -46,7 +47,7 @@ export class Listener implements IProcess {
 
     this.cancelListener = promise.cancel
 
-    promise.catch(() => process.exit(10))
+    this.promise = promise.then(() => process.exit(1)).catch(() => process.exit(1))
   }
 
   async destroy() {
