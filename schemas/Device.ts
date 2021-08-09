@@ -142,7 +142,7 @@ export class Device {
   // ==============================
 
   @Prop([String])
-  keys?: string[]
+  whitelist?: string[]
 
   // ==============================
   // TIMESTAMPS

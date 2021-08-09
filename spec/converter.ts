@@ -35,9 +35,10 @@ export const bToCommonContext = (ctx: Context): CommonContext => {
   return {
     devices: sortByAddress(
       ctx.devices.map((device) => ({
-        ...excludeProps(device, ['config', 'seed', 'data']),
+        ...excludeProps(device, ['config', 'seed', 'data', 'keys']),
         ...device.data,
-        keys: device.keys.sort()
+        // whitelist: device.keys.sort()
+        whitelist: []
       }))
     ),
     suppliers: sortByAddress(
@@ -93,6 +94,7 @@ export const dbToCommonContext = async (db: DatabaseClient): Promise<CommonConte
   return {
     devices: sortByAddress(devices.map(toObject)).map((device) => ({
       ...device,
+      whitelist: [],
       custom: JSON.parse(device.custom!)
     })) as any,
     suppliers: sortByAddress(

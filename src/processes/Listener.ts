@@ -46,8 +46,7 @@ export class Listener implements IProcess {
     )
 
     this.cancelListener = promise.cancel
-
-    this.promise = promise.then(() => process.exit(1)).catch(() => process.exit(1))
+    this.promise = promise
   }
 
   async destroy() {

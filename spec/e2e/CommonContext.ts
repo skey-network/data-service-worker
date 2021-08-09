@@ -3,7 +3,7 @@ export interface CommonContext {
     address: string
     name: string
     description: string
-    keys: string[]
+    whitelist: string[]
   }[]
   suppliers: {
     address: string

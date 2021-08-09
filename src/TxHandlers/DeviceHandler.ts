@@ -42,7 +42,7 @@ export class DeviceHandler extends Handler {
     const list = keyList.filter((key) => key.whitelisted).map((key) => key.id)
 
     const success = await this.db.safeInsertOne(
-      { ...update, address, keys: list },
+      { ...update, address, whitelist: list },
       'devices'
     )
     success && this.logger.log(`Device ${address} created`)
@@ -53,8 +53,8 @@ export class DeviceHandler extends Handler {
     const blacklisted = keyList.filter((k) => !k.whitelisted).map((k) => k.id)
 
     const $set = update
-    const $pull = { keys: { $in: blacklisted } }
-    const $addToSet = { keys: { $each: whitelisted } }
+    const $pull = { whitelist: { $in: blacklisted } }
+    const $addToSet = { whitelist: { $each: whitelisted } }
 
     const modified = [false, false, false]
 

@@ -26,7 +26,7 @@ const cases = [
     expected: (address: string) => ({
       address: address,
       name: 'dunno yet',
-      keys: []
+      whitelist: []
     })
   },
   {
@@ -39,7 +39,7 @@ const cases = [
       address: address,
       name: 'test_device',
       description: 'test_desc',
-      keys: []
+      whitelist: []
     })
   },
   {
@@ -52,7 +52,7 @@ const cases = [
       address: address,
       name: 'test_device',
       description: 'test_desc',
-      keys: [
+      whitelist: [
         '7pbRiBQXZLdifutZJz8brpPtHJEmZyJpSk2nt3HKmje',
         '2CC5MxkAP6DfrqSu82ZbjFvLfvoHQ4NVgo5b4MGwKtmn'
       ]
@@ -67,7 +67,7 @@ const cases = [
       address: address,
       name: 'test_device',
       description: 'test_desc',
-      keys: ['2CC5MxkAP6DfrqSu82ZbjFvLfvoHQ4NVgo5b4MGwKtmn']
+      whitelist: ['2CC5MxkAP6DfrqSu82ZbjFvLfvoHQ4NVgo5b4MGwKtmn']
     })
   },
   {
@@ -79,7 +79,7 @@ const cases = [
       address: address,
       name: 'test_device',
       description: 'test_desc',
-      keys: []
+      whitelist: []
     })
   },
   {
@@ -95,7 +95,7 @@ const cases = [
       address: address,
       name: 'test_device',
       description: 'test_desc',
-      keys: []
+      whitelist: []
     })
   }
 ]
