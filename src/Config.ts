@@ -1,5 +1,6 @@
 export interface AppConfig {
-  logs?: boolean
+  logs: boolean
+  minHeight: 1
 }
 
 export interface BlockchainConfig {

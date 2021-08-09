@@ -37,16 +37,36 @@ export class Listener implements IProcess {
     await this.db.connect()
     this.meta = new MetaClient(this.config, this.db)
 
+    // Current height of blockchain
+    const currentHeight = await this.blockchain.fetchHeight()
+    if (!currentHeight) throw new Error('Cannot fetch current blockchain height')
+
+    // Height stored in db
     const lastHeight = await this.meta.getHeight()
     if (!lastHeight) await this.meta.setHeight(1)
 
-    const promise = this.blockchain.subscribe(
-      this.handleChunk.bind(this),
-      lastHeight ?? 1
-    )
+    // Minimal height set in environment variables
+    // Used to skip some amount of blocks
+    const { minHeight } = await this.config.app
+
+    // Higher of heights from db and env
+    const fromHeight = Math.max(lastHeight ?? 1, minHeight)
+
+    // wait for height of blockchain to be high enough
+    // *Arg passed to grpc cannot be lower than current height*
+    if (fromHeight > currentHeight) {
+      this.logger.debug('Waiting for height', fromHeight)
+      await this.blockchain.waitForHeight(fromHeight)
+    }
+
+    this.logger.log('Starting from height', fromHeight)
+
+    const promise = this.blockchain.subscribe(this.handleChunk.bind(this), fromHeight)
 
     this.cancelListener = promise.cancel
     this.promise = promise
+
+    promise.catch(() => process.exit(1))
   }
 
   async destroy() {
@@ -61,7 +81,6 @@ export class Listener implements IProcess {
 
     const stable = height === 1 ? 1 : height - 1
     const success = await this.meta.setHeight(stable)
-
     if (!success) return
 
     this.logger.debug('New stable height', stable)

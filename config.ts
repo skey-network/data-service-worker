@@ -5,7 +5,8 @@ const { env } = process
 export default () =>
   ({
     app: {
-      logs: env.APP_LOGS === 'true'
+      logs: (env.APP_LOGS ?? 'true') === 'true',
+      minHeight: Number(env.APP_MIN_HEIGHT ?? '1')
     },
     blockchain: {
       dappFatherAddress: env.BLOCKCHAIN_DAPP_FATHER_ADDRESS!,

@@ -65,6 +65,27 @@ export class BlockchainClient {
     })
   }
 
+  waitForHeight(goal: number) {
+    const INTERVAL = 1000
+
+    return new Promise<void>((resolve, reject) => {
+      const handle = setInterval(async () => {
+        const height = await this.fetchHeight()
+
+        if (!height) {
+          clearTimeout(handle)
+          reject(`Received height = ${height} expected number greater than 0`)
+          return
+        }
+
+        if (height < goal) return
+
+        clearTimeout(handle)
+        resolve()
+      }, INTERVAL)
+    })
+  }
+
   subscribe(
     callback: (chunk: SubscribeEvent) => any,
     fromHeight: number,

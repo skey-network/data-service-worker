@@ -5,7 +5,7 @@ import { DatabaseContainer } from './DatabaseContainer'
 import { RedisContainer } from './RedisContainer'
 
 export const createConfig = (e2e: E2eContext): Config => ({
-  app: { logs: false },
+  app: { logs: false, minHeight: 1 },
   blockchain: {
     dappFatherAddress: '3MLiRijBGgFLZeXMm6DxHCAVkRnCTxS7hog',
     nodeUrl: `http://localhost:${e2e.blockchain.ports.http}`,
