@@ -20,6 +20,7 @@ export const createConfig = (e2e: E2eContext): Config => ({
   },
   grpc: {
     host: 'localhost',
+    peers: ['localhost'],
     updatesPort: e2e.blockchain.ports.updates,
     apiPort: e2e.blockchain.ports.grpc
   },

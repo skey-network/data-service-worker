@@ -6,12 +6,7 @@ import { App } from './processes/App'
 
 const app = new App(config())
 
-app.init().then(() => {
-  // setInterval(async () => {
-  //   const data = await app.listener.queue.getJobCounts()
-  //   console.log(data)
-  // }, 5000)
-})
+app.init()
 
 console.log('App started')
 console.log(config())

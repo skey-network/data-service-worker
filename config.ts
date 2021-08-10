@@ -22,6 +22,7 @@ export default () =>
     },
     grpc: {
       host: env.GRPC_HOST ?? 'localhost',
+      peers: env.GRPC_PEERS?.split(',') ?? [env.GRPC_HOST ?? 'localhost'],
       updatesPort: Number(env.GRPC_UPDATES_PORT ?? '6881'),
       apiPort: Number(env.GRPC_API_PORT ?? '6877')
     },

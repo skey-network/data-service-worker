@@ -24,7 +24,7 @@ describe('e2e', () => {
     e2e = await Context.createE2eContext(0)
     config = Context.createConfig(e2e)
     app = new App(config)
-
+    
     await app.init()
     await delay(2000)
     await app.processor.queue.pause()

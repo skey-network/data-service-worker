@@ -19,6 +19,7 @@ export interface DbConfig {
 
 export interface GrpcConfig {
   host: string
+  peers: string[]
   updatesPort: number
   apiPort: number
 }

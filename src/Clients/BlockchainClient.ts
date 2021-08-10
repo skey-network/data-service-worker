@@ -56,7 +56,6 @@ export class BlockchainClient {
     return new Promise<number | null>((resolve) => {
       this.client.blocksApiClient.GetCurrentHeight({}, (err, res) => {
         if (err || !res) {
-          this.logger.error(err)
           return resolve(null)
         }
 
@@ -95,7 +94,7 @@ export class BlockchainClient {
     const CONNECTION_DROPPED_MESSAGE = '14 UNAVAILABLE: Connection dropped'
     const CANCEL_TIMEOUT = 500
     const TIMER_INTERVAL = 100
-    const MAX_DELAY_SECONDS = 15
+    const MAX_DELAY_SECONDS = 30
 
     const request: SubscribeRequest = {
       from_height: fromHeight,
@@ -114,6 +113,7 @@ export class BlockchainClient {
           this.logger.error('Dropping connection ...')
 
           clearInterval(timerHandle)
+          call.cancel()
           reject('no updates')
         }
       }, TIMER_INTERVAL)
@@ -135,7 +135,7 @@ export class BlockchainClient {
 
         if (err.message === CONNECTION_DROPPED_MESSAGE) {
           this.logger.error('Grpc connection lost')
-          return reject()
+          return reject('dropped')
         }
 
         if (!err) {
@@ -147,6 +147,7 @@ export class BlockchainClient {
         this.logger.error(err)
 
         reject(err)
+        call.cancel()
       })
     })
 

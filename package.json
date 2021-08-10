@@ -8,7 +8,8 @@
     "build": "rm -rf dist && tsc",
     "test:unit": "jest --config ./spec/unit.config.json",
     "test:integration": "jest --config ./spec/integration.config.json",
-    "test:e2e": "jest --runInBand --config ./spec/e2e.config.json"
+    "test:e2e": "jest --runInBand --verbose --silent=false --config ./spec/e2e.config.json",
+    "stress": "npm run build && node dist/tools/stressNode.js"
   },
   "keywords": [],
   "author": "",
