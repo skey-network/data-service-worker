@@ -11,7 +11,7 @@ import { Logger } from '../Logger'
 import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 
 export class DappFatherHandler extends Handler {
-  private logger = new Logger(DappFatherHandler.name, this.config.app.logs)
+  protected logger = new Logger(DappFatherHandler.name, this.config.app.logs)
 
   async handleUpdate(update: ParsedUpdate) {
     for (const entries of update.entries) {

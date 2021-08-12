@@ -5,7 +5,7 @@ import { Handler } from './Handler'
 import { ParsedUpdate } from '../UpdateParser'
 
 export class KeyHandler extends Handler {
-  private logger = new Logger(KeyHandler.name, this.config.app.logs)
+  protected logger = new Logger(KeyHandler.name, this.config.app.logs)
 
   async handleUpdate(update: ParsedUpdate) {
     await this.handleAssetUpdates(update)

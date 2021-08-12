@@ -1,6 +1,6 @@
 import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 import { ACTIVE_KEYWORD, KEY_REGEX } from '../Constants'
-import { Handler } from './Handler'
+import { Handler, UpdateItemPayload } from './Handler'
 import { Logger } from '../Logger'
 
 interface KeyItem {
@@ -16,7 +16,7 @@ const keysMap = Object.freeze({
 })
 
 export class DeviceHandler extends Handler {
-  private logger = new Logger(DeviceHandler.name, this.config.app.logs)
+  protected logger = new Logger(DeviceHandler.name, this.config.app.logs)
 
   async handleUpdate(update: ParsedUpdate) {
     for (const item of update.entries) {
@@ -49,39 +49,32 @@ export class DeviceHandler extends Handler {
   }
 
   async updateDevice(address: string, update: any, keyList: KeyItem[]) {
-    const whitelisted = keyList.filter((k) => k.whitelisted).map((k) => k.id)
-    const blacklisted = keyList.filter((k) => !k.whitelisted).map((k) => k.id)
-
-    const $set = update
-    const $pull = { whitelist: { $in: blacklisted } }
-    const $addToSet = { whitelist: { $each: whitelisted } }
-
-    const modified = [false, false, false]
-
-    if (update) {
-      modified[0] = await this.db.safeUpdateOne({ address }, { $set }, 'devices')
+    const commonUpdateProps: UpdateItemPayload = {
+      collection: 'devices',
+      type: 'device',
+      idField: 'address',
+      id: address
     }
 
-    if (whitelisted.length) {
-      modified[1] = await this.db.safeUpdateOne({ address }, { $addToSet }, 'devices')
-    }
+    await this.updateList({
+      ...commonUpdateProps,
+      whitelistName: 'whitelist',
+      list: keyList
+    })
 
-    if (blacklisted.length) {
-      modified[2] = await this.db.safeUpdateOne({ address }, { $pull }, 'devices')
-    }
-
-    if (modified.includes(true)) {
-      this.logger.log(`Device ${address} updated`)
-    }
+    await this.updateProps({
+      ...commonUpdateProps,
+      data: update
+    })
   }
 
   parseKeyList(entries: ParsedEntry[]): KeyItem[] {
-    return entries
-      .filter(({ key }) => KEY_REGEX.test(key))
-      .map(({ key, value }) => ({
-        id: key.replace('key_', ''),
-        whitelisted: value === ACTIVE_KEYWORD
-      }))
+    return this.extractWhitelist({
+      entries,
+      regex: KEY_REGEX,
+      prefix: 'key_',
+      compareFunc: (value) => value === ACTIVE_KEYWORD
+    })
   }
 
   parseProps(entries: ParsedEntry[]): any | null {
