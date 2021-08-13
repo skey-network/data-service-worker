@@ -11,7 +11,10 @@ export interface ListItem {
 }
 
 export interface EntryMap {
-  [key: string]: string[]
+  strings: string[]
+  floats: string[]
+  json: string[]
+  booleans: string[]
 }
 
 export interface ExtractWhitelistPayload {
@@ -105,6 +108,50 @@ export abstract class Handler {
       this.logger.log(
         `Appended ${whitelisted.length} to ${p.type} ${p.id} ${p.whitelistName}`
       )
+    }
+  }
+
+  parseProps(entries: ParsedEntry[], entryMap: Partial<EntryMap>): any | null {
+    const withDefaults: EntryMap = {
+      strings: entryMap.strings ?? [],
+      floats: entryMap.floats ?? [],
+      booleans: entryMap.booleans ?? [],
+      json: entryMap.json ?? []
+    }
+
+    const updates = entries
+      .map(({ key, value }) => {
+        if (withDefaults.strings.includes(key)) {
+          return { [key]: value }
+        }
+
+        if (withDefaults.floats.includes(key)) {
+          return { [key]: Number(value) }
+        }
+
+        if (withDefaults.json.includes(key)) {
+          const obj = this.tryParse(value as string)
+          if (!obj) return this.logger.error('invalid json')
+
+          return { [key]: obj }
+        }
+
+        if (withDefaults.booleans.includes(key)) {
+          return { [key]: value }
+        }
+      })
+      .filter((update) => update)
+
+    if (updates.length === 0) return null
+
+    return Object.assign({}, ...updates)
+  }
+
+  tryParse(text: string) {
+    try {
+      return JSON.parse(text)
+    } catch {
+      return null
     }
   }
 

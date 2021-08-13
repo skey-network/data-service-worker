@@ -3,7 +3,7 @@ import { ACTIVE_KEYWORD, KEY_REGEX } from '../Constants'
 import { EntryMap, Handler, ListItem, UpdateItemPayload } from './Handler'
 import { Logger } from '../Logger'
 
-const keysMap: EntryMap = Object.freeze({
+const entryMap: EntryMap = Object.freeze({
   strings: ['name', 'description', 'type', 'supplier', 'owner', 'version', 'custom'],
   floats: ['lat', 'lng', 'alt'],
   json: ['details'],
@@ -20,7 +20,7 @@ export class DeviceHandler extends Handler {
   }
 
   async handleSingleUpdate(item: EntriesForAddress) {
-    const update = this.parseProps(item.entries)
+    const update = this.parseProps(item.entries, entryMap)
     const keyList = this.parseKeyList(item.entries)
 
     if (!update && !keyList.length) return
@@ -70,42 +70,5 @@ export class DeviceHandler extends Handler {
       prefix: 'key_',
       compareFunc: (value) => value === ACTIVE_KEYWORD
     })
-  }
-
-  parseProps(entries: ParsedEntry[]): any | null {
-    const updates = entries
-      .map(({ key, value }) => {
-        if (keysMap.strings.includes(key)) {
-          return { [key]: value }
-        }
-
-        if (keysMap.floats.includes(key)) {
-          return { [key]: Number(value) }
-        }
-
-        if (keysMap.json.includes(key)) {
-          const obj = this.tryParse(value as string)
-          if (!obj) return this.logger.error('invalid json')
-
-          return { [key]: obj }
-        }
-
-        if (keysMap.booleans.includes(key)) {
-          return { [key]: value }
-        }
-      })
-      .filter((update) => update)
-
-    if (updates.length === 0) return null
-
-    return Object.assign({}, ...updates)
-  }
-
-  tryParse(text: string) {
-    try {
-      return JSON.parse(text)
-    } catch {
-      return null
-    }
   }
 }

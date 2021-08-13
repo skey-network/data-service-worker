@@ -13,6 +13,10 @@ interface OrganisationPayload {
   }[]
 }
 
+const entryMap = Object.freeze({
+  strings: ['type', 'name', 'description']
+})
+
 export class OrganisationHandler extends Handler {
   protected logger = new Logger(OrganisationHandler.name, this.config.app.logs)
 
@@ -35,13 +39,7 @@ export class OrganisationHandler extends Handler {
   }
 
   parseEntries(entries: ParsedEntry[]): OrganisationPayload {
-    const fields = ['name', 'description', 'type']
-
-    const props = Object.fromEntries(
-      entries
-        .filter(({ key }) => fields.includes(key))
-        .map(({ key, value }) => [key, value])
-    )
+    const props = this.parseProps(entries, entryMap)
 
     const users = this.extractWhitelist({
       entries,

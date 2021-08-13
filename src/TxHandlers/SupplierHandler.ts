@@ -17,6 +17,10 @@ export interface SupplierPayload {
   organisations: ListItem[]
 }
 
+const entryMap = Object.freeze({
+  strings: ['type', 'name', 'description']
+})
+
 export class SupplierHandler extends Handler {
   protected logger = new Logger(SupplierHandler.name, this.config.app.logs)
 
@@ -87,13 +91,7 @@ export class SupplierHandler extends Handler {
   }
 
   parseEntries(entries: ParsedEntry[]): SupplierPayload {
-    const fields = ['name', 'description', 'type']
-
-    const info = Object.fromEntries(
-      entries
-        .filter(({ key }) => fields.includes(key))
-        .map(({ key, value }) => [key, value])
-    )
+    const info = this.parseProps(entries, entryMap)
 
     const devices = this.extractWhitelist({
       entries,
