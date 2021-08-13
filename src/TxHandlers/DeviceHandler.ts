@@ -1,14 +1,9 @@
 import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
 import { ACTIVE_KEYWORD, KEY_REGEX } from '../Constants'
-import { Handler, UpdateItemPayload } from './Handler'
+import { EntryMap, Handler, ListItem, UpdateItemPayload } from './Handler'
 import { Logger } from '../Logger'
 
-interface KeyItem {
-  id: string
-  whitelisted: boolean
-}
-
-const keysMap = Object.freeze({
+const keysMap: EntryMap = Object.freeze({
   strings: ['name', 'description', 'type', 'supplier', 'owner', 'version', 'custom'],
   floats: ['lat', 'lng', 'alt'],
   json: ['details'],
@@ -36,10 +31,10 @@ export class DeviceHandler extends Handler {
     await func.bind(this)(item.address, update, keyList)
   }
 
-  async createDevice(address: string, update: any, keyList: KeyItem[]) {
+  async createDevice(address: string, update: any, keyList: ListItem[]) {
     if (update?.type !== 'device') return
 
-    const list = keyList.filter((key) => key.whitelisted).map((key) => key.id)
+    const list = this.idsFromWhitelist(keyList)
 
     const success = await this.db.safeInsertOne(
       { ...update, address, whitelist: list },
@@ -48,7 +43,7 @@ export class DeviceHandler extends Handler {
     success && this.logger.log(`Device ${address} created`)
   }
 
-  async updateDevice(address: string, update: any, keyList: KeyItem[]) {
+  async updateDevice(address: string, update: any, keyList: ListItem[]) {
     const commonUpdateProps: UpdateItemPayload = {
       collection: 'devices',
       type: 'device',
@@ -68,7 +63,7 @@ export class DeviceHandler extends Handler {
     })
   }
 
-  parseKeyList(entries: ParsedEntry[]): KeyItem[] {
+  parseKeyList(entries: ParsedEntry[]): ListItem[] {
     return this.extractWhitelist({
       entries,
       regex: KEY_REGEX,

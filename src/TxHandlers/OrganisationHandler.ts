@@ -43,12 +43,12 @@ export class OrganisationHandler extends Handler {
         .map(({ key, value }) => [key, value])
     )
 
-    const users = entries
-      .filter(({ key }) => USER_REGEX.test(key))
-      .map(({ key, value }) => ({
-        id: key.replace(USER_PREFIX, ''),
-        whitelisted: value === ACTIVE_KEYWORD
-      }))
+    const users = this.extractWhitelist({
+      entries,
+      regex: USER_REGEX,
+      prefix: USER_PREFIX,
+      compareFunc: (value) => value === ACTIVE_KEYWORD
+    })
 
     return { ...props, users }
   }
@@ -63,7 +63,7 @@ export class OrganisationHandler extends Handler {
         address,
         name,
         description,
-        users: payload.users.filter((user) => user.whitelisted).map((user) => user.id),
+        users: this.idsFromWhitelist(payload.users),
         whitelisted: false
       },
       'organisations'

@@ -10,6 +10,10 @@ export interface ListItem {
   whitelisted: boolean
 }
 
+export interface EntryMap {
+  [key: string]: string[]
+}
+
 export interface ExtractWhitelistPayload {
   entries: ParsedEntry[]
   regex: RegExp
@@ -48,6 +52,10 @@ export abstract class Handler {
 
   async handleUpdate(update: ParsedUpdate) {
     throw new Error('handleUpdate not implemented')
+  }
+
+  idsFromWhitelist(list: ListItem[]): string[] {
+    return list.filter((item) => item.whitelisted).map((item) => item.id)
   }
 
   async updateProps(p: UpdatePropsPayload) {

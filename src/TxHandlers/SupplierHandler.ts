@@ -48,12 +48,8 @@ export class SupplierHandler extends Handler {
         address,
         name,
         description,
-        whitelist: payload.whitelist
-          .filter((device) => device.whitelisted)
-          .map((device) => device.id),
-        organisations: payload.organisations
-          .filter((org) => org.whitelisted)
-          .map((org) => org.id),
+        whitelist: this.idsFromWhitelist(payload.whitelist),
+        organisations: this.idsFromWhitelist(payload.organisations),
         whitelisted: false
       },
       'suppliers'
