@@ -137,7 +137,9 @@ export abstract class Handler {
         }
 
         if (withDefaults.booleans.includes(key)) {
-          return { [key]: value }
+          const isStr = typeof value === 'string'
+          const strValue = value === 'true'
+          return { [key]: isStr ? strValue : value }
         }
       })
       .filter((update) => update)

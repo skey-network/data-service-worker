@@ -83,6 +83,40 @@ const cases = [
     })
   },
   {
+    toString: () => 'update boolean',
+    entries: (address: string) => [
+      { key: 'active', value: true },
+      { key: 'connected', value: true },
+      { key: 'visible', value: false }
+    ],
+    expected: (address: string) => ({
+      address: address,
+      name: 'test_device',
+      description: 'test_desc',
+      active: true,
+      connected: true,
+      visible: false,
+      whitelist: []
+    })
+  },
+  {
+    toString: () => 'update boolean string',
+    entries: (address: string) => [
+      { key: 'active', value: 'false' },
+      { key: 'connected', value: 'false' },
+      { key: 'visible', value: 'true' }
+    ],
+    expected: (address: string) => ({
+      address: address,
+      name: 'test_device',
+      description: 'test_desc',
+      active: false,
+      connected: false,
+      visible: true,
+      whitelist: []
+    })
+  },
+  {
     toString: () => 'update invalid values',
     entries: (address: string) => [
       { key: 'other', value: 'hello there' },
@@ -95,6 +129,9 @@ const cases = [
       address: address,
       name: 'test_device',
       description: 'test_desc',
+      active: false,
+      connected: false,
+      visible: true,
       whitelist: []
     })
   }
