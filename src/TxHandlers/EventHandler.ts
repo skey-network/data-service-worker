@@ -10,7 +10,7 @@ const BYTE = 1
 type PreIncrement = (val: number) => number
 
 export class EventHandler extends Handler {
-  private logger = new Logger(EventHandler.name, this.config.app.logs)
+  protected logger = new Logger(EventHandler.name, this.config.app.logs)
 
   async handleUpdate(update: ParsedUpdate) {
     const ids = update.ids.map(Common.normalizeBinaryInput)

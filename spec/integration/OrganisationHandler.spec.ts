@@ -24,20 +24,53 @@ const cases = [
       address,
       name: undefined,
       description: undefined,
-      whitelisted: false
+      whitelisted: false,
+      users: []
     })
   },
   {
     toString: () => 'update organisation',
     entries: (address: string) => [
-      { key: 'name', value: 'test name' },
-      { key: 'description', value: 'test desc' }
+      { key: 'name', value: 'test_name' },
+      { key: 'description', value: 'test_desc' }
     ],
     expected: (address: string) => ({
       address,
-      name: 'test name',
-      description: 'test desc',
-      whitelisted: false
+      name: 'test_name',
+      description: 'test_desc',
+      whitelisted: false,
+      users: []
+    })
+  },
+  {
+    toString: () => 'whitelist users',
+    entries: (address: string) => [
+      { key: 'user_3M2Zy7xEUVgS96dKwrimaFBbZH7AViVpPSv', value: 'active' },
+      { key: 'user_3MQHyskVP95vCVbeKbVATrT4MhBhroDbGSj', value: 'active' }
+    ],
+    expected: (address: string) => ({
+      address,
+      name: 'test_name',
+      description: 'test_desc',
+      whitelisted: false,
+      users: [
+        '3M2Zy7xEUVgS96dKwrimaFBbZH7AViVpPSv',
+        '3MQHyskVP95vCVbeKbVATrT4MhBhroDbGSj'
+      ]
+    })
+  },
+  {
+    toString: () => 'blacklist users',
+    entries: (address: string) => [
+      { key: 'user_3M2Zy7xEUVgS96dKwrimaFBbZH7AViVpPSv', value: 'inactive' },
+      { key: 'user_3MQHyskVP95vCVbeKbVATrT4MhBhroDbGSj', value: 'inactive' }
+    ],
+    expected: (address: string) => ({
+      address,
+      name: 'test_name',
+      description: 'test_desc',
+      whitelisted: false,
+      users: []
     })
   },
   {
@@ -49,9 +82,10 @@ const cases = [
     ],
     expected: (address: string) => ({
       address,
-      name: 'test name',
-      description: 'test desc',
-      whitelisted: false
+      name: 'test_name',
+      description: 'test_desc',
+      whitelisted: false,
+      users: []
     })
   }
 ]
@@ -88,7 +122,8 @@ describe('OrganisationHandler - integration', () => {
       address: obj.address,
       name: obj.name,
       description: obj.description,
-      whitelisted: obj.whitelisted
+      whitelisted: obj.whitelisted,
+      users: Array.from(obj.users)
     }))(doc)
 
     expect(picked).toEqual(args.expected(org.address))

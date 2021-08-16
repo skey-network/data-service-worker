@@ -23,6 +23,9 @@ export class Supplier {
   @Prop([String])
   whitelist: string[]
 
+  @Prop([String])
+  organisations: string[]
+
   @Prop(Date)
   createdAt: Date
 

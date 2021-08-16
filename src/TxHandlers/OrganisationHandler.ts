@@ -1,15 +1,24 @@
 import { ParsedUpdate, EntriesForAddress, ParsedEntry } from '../UpdateParser'
-import { Handler } from './Handler'
+import { Handler, UpdateItemPayload } from './Handler'
 import { Logger } from '../Logger'
+import { ACTIVE_KEYWORD, USER_PREFIX, USER_REGEX } from '../Constants'
 
 interface OrganisationPayload {
   name?: string
   description?: string
   type?: string
+  users: {
+    id: string
+    whitelisted: boolean
+  }[]
 }
 
+const entryMap = Object.freeze({
+  strings: ['type', 'name', 'description']
+})
+
 export class OrganisationHandler extends Handler {
-  private logger = new Logger(OrganisationHandler.name, this.config.app.logs)
+  protected logger = new Logger(OrganisationHandler.name, this.config.app.logs)
 
   async handleUpdate(update: ParsedUpdate) {
     this.logger.debug(OrganisationHandler.name, 'handle height', update.height)
@@ -30,13 +39,16 @@ export class OrganisationHandler extends Handler {
   }
 
   parseEntries(entries: ParsedEntry[]): OrganisationPayload {
-    const fields = ['name', 'description', 'type']
+    const props = this.parseProps(entries, entryMap)
 
-    return Object.fromEntries(
-      entries
-        .filter(({ key }) => fields.includes(key))
-        .map(({ key, value }) => [key, value])
-    )
+    const users = this.extractWhitelist({
+      entries,
+      regex: USER_REGEX,
+      prefix: USER_PREFIX,
+      compareFunc: (value) => value === ACTIVE_KEYWORD
+    })
+
+    return { ...props, users }
   }
 
   async createOrganisation(address: string, payload: OrganisationPayload) {
@@ -49,6 +61,7 @@ export class OrganisationHandler extends Handler {
         address,
         name,
         description,
+        users: this.idsFromWhitelist(payload.users),
         whitelisted: false
       },
       'organisations'
@@ -58,9 +71,24 @@ export class OrganisationHandler extends Handler {
   }
 
   async updateOrganisation(address: string, payload: OrganisationPayload) {
-    const { type, ...update } = payload
+    const { name, description, users } = payload
 
-    await this.db.safeUpdateOne({ address }, update, 'organisations')
-    this.logger.log(`Organisation ${address} updated`)
+    const commonUpdateProps: UpdateItemPayload = {
+      collection: 'organisations',
+      type: 'organisation',
+      idField: 'address',
+      id: address
+    }
+
+    await this.updateList({
+      ...commonUpdateProps,
+      whitelistName: 'users',
+      list: users
+    })
+
+    await this.updateProps({
+      ...commonUpdateProps,
+      data: { name, description }
+    })
   }
 }

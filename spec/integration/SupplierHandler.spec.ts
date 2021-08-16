@@ -27,7 +27,8 @@ const cases = [
       name: undefined,
       description: undefined,
       whitelisted: false,
-      whitelist: []
+      whitelist: [],
+      organisations: []
     }
   },
   {
@@ -41,7 +42,8 @@ const cases = [
       name: 'test_name',
       description: 'test_desc',
       whitelisted: false,
-      whitelist: []
+      whitelist: [],
+      organisations: []
     }
   },
   {
@@ -58,7 +60,8 @@ const cases = [
       whitelist: [
         '3M2Zy7xEUVgS96dKwrimaFBbZH7AViVpPSv',
         '3MQHyskVP95vCVbeKbVATrT4MhBhroDbGSj'
-      ]
+      ],
+      organisations: []
     }
   },
   {
@@ -72,7 +75,41 @@ const cases = [
       name: 'test_name',
       description: 'test_desc',
       whitelisted: false,
-      whitelist: []
+      whitelist: [],
+      organisations: []
+    }
+  },
+  {
+    toString: () => 'whitelist organisations',
+    entries: [
+      { key: 'org_3ENsUGgQFNVWtGb6Vp8cSVv1aoQ93GJUYPf', value: 'active' },
+      { key: 'org_3EPjfsvPnzdQAGpR2fJYvS2d45z6oaPtRb5', value: 'active' }
+    ],
+    expected: {
+      address: supplier.address,
+      name: 'test_name',
+      description: 'test_desc',
+      whitelisted: false,
+      whitelist: [],
+      organisations: [
+        '3ENsUGgQFNVWtGb6Vp8cSVv1aoQ93GJUYPf',
+        '3EPjfsvPnzdQAGpR2fJYvS2d45z6oaPtRb5'
+      ]
+    }
+  },
+  {
+    toString: () => 'blacklist organisations',
+    entries: [
+      { key: 'org_3ENsUGgQFNVWtGb6Vp8cSVv1aoQ93GJUYPf', value: null },
+      { key: 'org_3EPjfsvPnzdQAGpR2fJYvS2d45z6oaPtRb5', value: null }
+    ],
+    expected: {
+      address: supplier.address,
+      name: 'test_name',
+      description: 'test_desc',
+      whitelisted: false,
+      whitelist: [],
+      organisations: []
     }
   },
   {
@@ -86,7 +123,8 @@ const cases = [
       name: 'test_name',
       description: 'test_desc',
       whitelisted: false,
-      whitelist: []
+      whitelist: [],
+      organisations: []
     }
   }
 ]
@@ -123,7 +161,8 @@ describe('SupplierHandler - integration', () => {
       name: obj.name,
       description: obj.description,
       whitelisted: obj.whitelisted,
-      whitelist: Array.from(obj.whitelist)
+      whitelist: Array.from(obj.whitelist),
+      organisations: Array.from(obj.organisations)
     }))(doc)
 
     expect(picked).toEqual(args.expected)

@@ -1,20 +1,28 @@
 import { EntriesForAddress, ParsedEntry, ParsedUpdate } from '../UpdateParser'
-import { DEVICE_PREFIX, DEVICE_REGEX } from '../Constants'
+import {
+  ACTIVE_KEYWORD,
+  DEVICE_PREFIX,
+  DEVICE_REGEX,
+  ORGANISATION_PREFIX,
+  ORGANISATION_REGEX
+} from '../Constants'
 import { Logger } from '../Logger'
-import { Handler } from './Handler'
+import { Handler, ListItem, UpdateItemPayload } from './Handler'
 
 export interface SupplierPayload {
   name?: string
   description?: string
   type?: string
-  whitelist: {
-    address: string
-    whitelisted: boolean
-  }[]
+  whitelist: ListItem[]
+  organisations: ListItem[]
 }
 
+const entryMap = Object.freeze({
+  strings: ['type', 'name', 'description']
+})
+
 export class SupplierHandler extends Handler {
-  private logger = new Logger(SupplierHandler.name, this.config.app.logs)
+  protected logger = new Logger(SupplierHandler.name, this.config.app.logs)
 
   async handleUpdate(update: ParsedUpdate) {
     this.logger.debug(SupplierHandler.name, 'handle height', update.height)
@@ -37,13 +45,15 @@ export class SupplierHandler extends Handler {
   async createSupplier(address: string, payload: SupplierPayload) {
     if (payload.type !== 'supplier') return
 
+    const { name, description } = payload
+
     const success = await this.db.safeInsertOne(
       {
-        ...payload,
         address,
-        whitelist: payload.whitelist
-          .filter((device) => device.whitelisted)
-          .map((device) => device.address),
+        name,
+        description,
+        whitelist: this.idsFromWhitelist(payload.whitelist),
+        organisations: this.idsFromWhitelist(payload.organisations),
         whitelisted: false
       },
       'suppliers'
@@ -53,52 +63,50 @@ export class SupplierHandler extends Handler {
   }
 
   async updateSupplier(address: string, payload: SupplierPayload) {
-    const { name, description, whitelist } = payload
+    const { name, description, whitelist, organisations } = payload
 
-    const whitelisted = whitelist.filter((d) => d.whitelisted).map((d) => d.address)
-    const blacklisted = whitelist.filter((d) => !d.whitelisted).map((d) => d.address)
-
-    const $set = { name, description }
-    const $pull = { whitelist: { $in: blacklisted } }
-    const $addToSet = { whitelist: { $each: whitelisted } }
-
-    const modified = [false, false, false]
-
-    // Cannot run pull and add$addToSet at the same time?
-
-    if (name || description) {
-      modified[0] = await this.db.safeUpdateOne({ address }, { $set }, 'suppliers')
+    const commonUpdateProps: UpdateItemPayload = {
+      collection: 'suppliers',
+      type: 'supplier',
+      idField: 'address',
+      id: address
     }
 
-    if (whitelisted.length) {
-      modified[1] = await this.db.safeUpdateOne({ address }, { $addToSet }, 'suppliers')
-    }
+    await this.updateList({
+      ...commonUpdateProps,
+      whitelistName: 'whitelist',
+      list: whitelist
+    })
 
-    if (blacklisted.length) {
-      modified[2] = await this.db.safeUpdateOne({ address }, { $pull }, 'suppliers')
-    }
+    await this.updateList({
+      ...commonUpdateProps,
+      whitelistName: 'organisations',
+      list: organisations
+    })
 
-    if (modified.includes(true)) {
-      this.logger.log(`Supplier ${address} updated`)
-    }
+    await this.updateProps({
+      ...commonUpdateProps,
+      data: { name, description }
+    })
   }
 
   parseEntries(entries: ParsedEntry[]): SupplierPayload {
-    const fields = ['name', 'description', 'type']
+    const info = this.parseProps(entries, entryMap)
 
-    const info = Object.fromEntries(
-      entries
-        .filter(({ key }) => fields.includes(key))
-        .map(({ key, value }) => [key, value])
-    )
+    const devices = this.extractWhitelist({
+      entries,
+      regex: DEVICE_REGEX,
+      prefix: DEVICE_PREFIX,
+      compareFunc: (value) => !!value
+    })
 
-    const list = entries
-      .filter(({ key }) => DEVICE_REGEX.test(key))
-      .map(({ key, value }) => ({
-        address: key.replace(DEVICE_PREFIX, ''),
-        whitelisted: !!value
-      }))
+    const organisations = this.extractWhitelist({
+      entries,
+      regex: ORGANISATION_REGEX,
+      prefix: ORGANISATION_PREFIX,
+      compareFunc: (value) => value === ACTIVE_KEYWORD
+    })
 
-    return { ...info, whitelist: list }
+    return { ...info, whitelist: devices, organisations }
   }
 }
