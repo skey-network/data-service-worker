@@ -34,12 +34,9 @@ export class DeviceHandler extends Handler {
   async createDevice(address: string, update: any, keyList: ListItem[]) {
     if (update?.type !== 'device') return
 
-    const list = this.idsFromWhitelist(keyList)
+    const newRecord = this.buildNewDevice(address, update, this.idsFromWhitelist(keyList))
+    const success = await this.db.safeInsertOne(newRecord, 'devices')
 
-    const success = await this.db.safeInsertOne(
-      { ...update, address, whitelist: list },
-      'devices'
-    )
     success && this.logger.log(`Device ${address} created`)
   }
 
@@ -59,7 +56,7 @@ export class DeviceHandler extends Handler {
 
     await this.updateProps({
       ...commonUpdateProps,
-      data: update
+      data: await this.buildUpdateDeviceProps(address, update)
     })
   }
 
@@ -70,5 +67,38 @@ export class DeviceHandler extends Handler {
       prefix: 'key_',
       compareFunc: (value) => value === ACTIVE_KEYWORD
     })
+  }
+
+  private buildNewDevice(address: string, update: any, whitelist: string[]) {
+    const newDevice = { ...update, address, whitelist }
+    if (update.lng && update.lat) {
+      newDevice.location = {
+        type: 'Point',
+        coordinates: [update.lng, update.lat]
+      }
+    }
+    return newDevice
+  }
+
+  private async buildUpdateDeviceProps(address: string, update: any) {
+    if (!update) return update
+
+    const updateDeviceProps = { ...update }
+
+    if (update.lng && update.lat) {
+      updateDeviceProps.location = {
+        type: 'Point',
+        coordinates: [update.lng, update.lat]
+      }
+    } else if (update.lng || update.lat) {
+      const { lng, lat } = await this.db.safeFindOne({ address }, 'devices')
+
+      updateDeviceProps.location = {
+        type: 'Point',
+        coordinates: [update.lng || lng, update.lat || lat]
+      }
+    }
+
+    return updateDeviceProps
   }
 }
