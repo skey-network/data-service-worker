@@ -21,12 +21,20 @@ const cases = [
     toString: () => 'create device',
     entries: (address: string) => [
       { key: 'type', value: 'device' },
-      { key: 'name', value: 'dunno yet' }
+      { key: 'name', value: 'dunno yet' },
+      { key: 'lat', value: '20.34' },
+      { key: 'lng', value: '69.420' }
     ],
     expected: (address: string) => ({
       address: address,
       name: 'dunno yet',
-      whitelist: []
+      whitelist: [],
+      lat: 20.34,
+      lng: 69.42,
+      location: {
+        type: 'Point',
+        coordinates: [69.42, 20.34]
+      }
     })
   },
   {
@@ -39,7 +47,13 @@ const cases = [
       address: address,
       name: 'test_device',
       description: 'test_desc',
-      whitelist: []
+      whitelist: [],
+      lat: 20.34,
+      lng: 69.42,
+      location: {
+        type: 'Point',
+        coordinates: [69.42, 20.34]
+      }
     })
   },
   {
@@ -55,7 +69,13 @@ const cases = [
       whitelist: [
         '7pbRiBQXZLdifutZJz8brpPtHJEmZyJpSk2nt3HKmje',
         '2CC5MxkAP6DfrqSu82ZbjFvLfvoHQ4NVgo5b4MGwKtmn'
-      ]
+      ],
+      lat: 20.34,
+      lng: 69.42,
+      location: {
+        type: 'Point',
+        coordinates: [69.42, 20.34]
+      }
     })
   },
   {
@@ -67,7 +87,13 @@ const cases = [
       address: address,
       name: 'test_device',
       description: 'test_desc',
-      whitelist: ['2CC5MxkAP6DfrqSu82ZbjFvLfvoHQ4NVgo5b4MGwKtmn']
+      whitelist: ['2CC5MxkAP6DfrqSu82ZbjFvLfvoHQ4NVgo5b4MGwKtmn'],
+      lat: 20.34,
+      lng: 69.42,
+      location: {
+        type: 'Point',
+        coordinates: [69.42, 20.34]
+      }
     })
   },
   {
@@ -79,7 +105,13 @@ const cases = [
       address: address,
       name: 'test_device',
       description: 'test_desc',
-      whitelist: []
+      whitelist: [],
+      lat: 20.34,
+      lng: 69.42,
+      location: {
+        type: 'Point',
+        coordinates: [69.42, 20.34]
+      }
     })
   },
   {
@@ -96,7 +128,13 @@ const cases = [
       active: true,
       connected: true,
       visible: false,
-      whitelist: []
+      whitelist: [],
+      lat: 20.34,
+      lng: 69.42,
+      location: {
+        type: 'Point',
+        coordinates: [69.42, 20.34]
+      }
     })
   },
   {
@@ -113,7 +151,13 @@ const cases = [
       active: false,
       connected: false,
       visible: true,
-      whitelist: []
+      whitelist: [],
+      lat: 20.34,
+      lng: 69.42,
+      location: {
+        type: 'Point',
+        coordinates: [69.42, 20.34]
+      }
     })
   },
   {
@@ -132,7 +176,54 @@ const cases = [
       active: false,
       connected: false,
       visible: true,
-      whitelist: []
+      whitelist: [],
+      lat: 20.34,
+      lng: 69.42,
+      location: {
+        type: 'Point',
+        coordinates: [69.42, 20.34]
+      }
+    })
+  },
+  {
+    toString: () => 'update device localisation',
+    entries: (address: string) => [
+      { key: 'lat', value: '12.345' },
+      { key: 'lng', value: '67.89' }
+    ],
+    expected: (address: string) => ({
+      address: address,
+      name: 'test_device',
+      description: 'test_desc',
+      active: false,
+      connected: false,
+      visible: true,
+      whitelist: [],
+      lat: 12.345,
+      lng: 67.89,
+      location: {
+        type: 'Point',
+        coordinates: [67.89, 12.345]
+      }
+    })
+  },
+  {
+    toString: () => 'update only one of device localisation',
+    entries: (address: string) => [{ key: 'lat', value: '54.321' }],
+    expected: (address: string) => ({
+      address: address,
+      name: 'test_device',
+      description: 'test_desc',
+      active: false,
+      connected: false,
+      visible: true,
+      whitelist: [],
+      lat: 54.321,
+      lng: 67.89,
+      location: {
+        type: 'Point',
+        coordinates: [67.89, 54.321]
+      }
     })
   }
 ]

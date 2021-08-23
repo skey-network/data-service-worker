@@ -39,7 +39,7 @@ export class Listener implements IProcess {
       this.logger.error('Cannot find node to connect. Exiting ...')
       process.exit(1)
     }
-    
+
     this.logger.debug('Trying to connect to', node)
 
     this.config.grpc.host = node
@@ -80,14 +80,14 @@ export class Listener implements IProcess {
     // Height stored in db
     const lastHeight = await this.meta.getHeight()
     if (!lastHeight) await this.meta.setHeight(1)
-    
+
     // Minimal height set in environment variables
     // Used to skip some amount of blocks
     const { minHeight } = this.config.app
-    
+
     // Higher of heights from db and env
     const fromHeight = Math.max(lastHeight ?? 1, minHeight)
-    
+
     // wait for height of blockchain to be high enough
     // *Arg passed to grpc cannot be lower than current height*
     if (fromHeight > currentHeight) {

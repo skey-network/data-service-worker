@@ -83,7 +83,7 @@ export class DatabaseClient {
 
   static createUri(params: ConnectionParams) {
     const { host, port, name, username, password } = params
-    return `mongodb://${username}:${password}@${host}:${port}/${name}`
+    return `mongodb://${username}:${password}@${host}:${port}/${name}?authsource=admin`
   }
 
   async dropAllCollections() {

@@ -195,10 +195,12 @@ describe('getBalanceUpdates', () => {
       expected: [
         {
           address: '5T',
+          amount: 0,
           assetId: '5T'
         },
         {
           address: 'EK',
+          amount: 0,
           assetId: 'EK'
         }
       ]

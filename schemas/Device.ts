@@ -22,6 +22,23 @@ export const deviceTypeValues = Object.freeze([
 ])
 
 @Schema()
+export class Location {
+  @Prop(() => ({
+    type: String,
+    enum: ['Point'],
+    default: 'Point',
+    required: true
+  }))
+  type?: string
+
+  @Prop(() => ({
+    type: [Number],
+    required: true
+  }))
+  coordinates: number[]
+}
+
+@Schema()
 export class PhysicalAddress {
   @Prop(String)
   addressLine1?: string
@@ -110,6 +127,9 @@ export class Device {
   @Prop(Number)
   alt?: number
 
+  @Prop(Location)
+  location?: Location
+
   // ==============================
   // BOOLEANS
   // ==============================
@@ -156,3 +176,5 @@ export class Device {
 }
 
 export const DeviceSchema = SchemaFactory.createForClass(Device)
+
+DeviceSchema.index({ location: '2dsphere' }, { unique: false, required: false })
