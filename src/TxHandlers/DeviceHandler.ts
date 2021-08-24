@@ -72,10 +72,7 @@ export class DeviceHandler extends Handler {
   private buildNewDevice(address: string, update: any, whitelist: string[]) {
     const newDevice = { ...update, address, whitelist }
     if (update.lng && update.lat) {
-      newDevice.location = {
-        type: 'Point',
-        coordinates: [update.lng, update.lat]
-      }
+      newDevice.location = this.buildLocation(update.lng, update.lat)
     }
     return newDevice
   }
@@ -85,20 +82,38 @@ export class DeviceHandler extends Handler {
 
     const updateDeviceProps = { ...update }
 
-    if (update.lng && update.lat) {
-      updateDeviceProps.location = {
-        type: 'Point',
-        coordinates: [update.lng, update.lat]
-      }
-    } else if (update.lng || update.lat) {
-      const { lng, lat } = await this.db.safeFindOne({ address }, 'devices')
+    try {
+      const updatedLocation = await this.updateLocation(address, update)
 
-      updateDeviceProps.location = {
-        type: 'Point',
-        coordinates: [update.lng || lng, update.lat || lat]
+      if (updatedLocation) {
+        updateDeviceProps.location = updatedLocation
       }
+    } catch (e) {
+      this.logger.error(`Building new location of device ${address} failed: ${e}`)
     }
 
     return updateDeviceProps
+  }
+
+  private async updateLocation(address: string, updateProps: any) {
+    if (!updateProps.lat && !updateProps.lng) return null
+
+    const { lng, lat } = await this.db.safeFindOne({ address }, 'devices')
+
+    const cords = {
+      lng: updateProps.lng || lng,
+      lat: updateProps.lat || lat
+    }
+
+    if (!cords.lat || !cords.lng) return null
+
+    return this.buildLocation(cords.lng, cords.lat)
+  }
+
+  private buildLocation(lng: number, lat: number) {
+    return {
+      type: 'Point',
+      coordinates: [lng, lat]
+    }
   }
 }
