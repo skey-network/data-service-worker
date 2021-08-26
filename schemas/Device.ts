@@ -177,4 +177,4 @@ export class Device {
 
 export const DeviceSchema = SchemaFactory.createForClass(Device)
 
-DeviceSchema.index({ location: '2dsphere' }, { unique: false, required: false })
+DeviceSchema.index({ location: '2dsphere' }, { unique: false })
